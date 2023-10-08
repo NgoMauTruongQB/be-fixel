@@ -1,0 +1,889 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model address {
+  id          Int       @id @default(autoincrement())
+  customer_id Int?
+  default     Boolean?
+  blk_no      String?
+  floor       String?
+  unit_no     String?
+  building    String?
+  street      String?
+  country     String?
+  post_code   String?
+  insert_time DateTime  @default(now())
+  insert_by   Int?
+  update_time DateTime?
+  update_by   Int?
+  delete_time DateTime?
+  delete_by   Int?
+  home        Boolean   @default(false)
+  customer    customer? @relation(fields: [customer_id], references: [id])
+  job         job[]
+}
+
+model assign_worker_histories {
+  id                                                     Int       @id @default(autoincrement())
+  job_id                                                 Int?
+  worker_id                                              Int?
+  handyman_id                                            Int?
+  assign_time                                            DateTime?
+  handyman_assign_worker_histories_handyman_idTohandyman handyman? @relation("assign_worker_histories_handyman_idTohandyman", fields: [handyman_id], references: [id])
+  job                                                    job?      @relation(fields: [job_id], references: [id])
+  handyman_assign_worker_histories_worker_idTohandyman   handyman? @relation("assign_worker_histories_worker_idTohandyman", fields: [worker_id], references: [id])
+}
+
+model banner {
+  id          Int       @id @default(autoincrement())
+  image       String
+  title       String
+  content     String?
+  app         Int       @db.SmallInt
+  insert_time DateTime  @default(now())
+  insert_by   Int?
+  update_time DateTime?
+  update_by   Int?
+  delete_time DateTime?
+  delete_by   Int?
+}
+
+model channel {
+  id                                     Int       @id @default(autoincrement())
+  job_id                                 Int?
+  job_code                               String?
+  status                                 Int?      @default(1)
+  customer_id                            Int?
+  handyman_id                            Int?
+  worker_id                              Int?
+  offer_id                               Int?      @unique(map: "channel.offer_id_unique")
+  last_message                           String?
+  last_image                             String?
+  last_sent_time                         DateTime?
+  worker_join_date                       DateTime?
+  insert_time                            DateTime  @default(now())
+  insert_by                              Int?
+  update_time                            DateTime?
+  update_by                              Int?
+  delete_time                            DateTime?
+  delete_by                              Int?
+  group                                  Boolean   @default(false)
+  customer                               customer? @relation(fields: [customer_id], references: [id])
+  handyman_channel_handyman_idTohandyman handyman? @relation("channel_handyman_idTohandyman", fields: [handyman_id], references: [id])
+  job                                    job?      @relation(fields: [job_id], references: [id])
+  offer                                  offer?    @relation(fields: [offer_id], references: [id])
+  handyman_channel_worker_idTohandyman   handyman? @relation("channel_worker_idTohandyman", fields: [worker_id], references: [id])
+  message                                message[]
+
+  @@unique([job_id, handyman_id, group], map: "channel_unique")
+}
+
+model color {
+  id    Int    @id @default(autoincrement())
+  key   String
+  value String
+  app   Int
+
+  @@unique([key, app], map: "color_unique")
+}
+
+model customer {
+  id                    Int                     @id @default(autoincrement())
+  uuid                  String?
+  email                 String                  @unique(map: "customer.email_unique")
+  user_name             String                  @unique(map: "customer.user_name_unique")
+  password              String
+  first_name            String?
+  last_name             String?
+  mobile_number         String?
+  home_number           String?
+  status                Int?                    @default(1)
+  activate_time         DateTime?
+  device_token          String?
+  avatar                String?
+  star                  Float?                  @default(0)
+  star_count            Int?                    @default(0)
+  reward_point          Float?                  @default(0)
+  device_info           Json?
+  insert_time           DateTime                @default(now())
+  insert_by             Int?
+  update_time           DateTime?
+  update_by             Int?
+  delete_time           DateTime?
+  delete_by             Int?
+  blk_no                String?
+  floor                 String?
+  unit_no               String?
+  building              String?
+  street                String?
+  country               String?
+  post_code             String?
+  name                  String?
+  googleToken           String?
+  calendarStatus        Boolean?
+  address               address[]
+  channel               channel[]
+  extra                 extra[]
+  feedback              feedback[]
+  history_action        history_action[]
+  job                   job[]
+  message               message[]
+  milestone             milestone[]
+  notification_customer notification_customer[]
+  notification_handyman notification_handyman[]
+  payment               payment[]
+  reschedule            reschedule[]
+  review                review[]
+  token                 token[]
+}
+
+model extra {
+  id          Int       @id @default(autoincrement())
+  job_id      Int?
+  type        Int?
+  amount      Float?
+  gst         Float?
+  note        String?
+  status      Int?      @default(1)
+  insert_time DateTime  @default(now())
+  insert_by   Int?
+  update_time DateTime?
+  update_by   Int?
+  delete_time DateTime?
+  delete_by   Int?
+  accept_time DateTime?
+  handyman_id Int?
+  customer_id Int?
+  customer    customer? @relation(fields: [customer_id], references: [id])
+  handyman    handyman? @relation(fields: [handyman_id], references: [id])
+  job         job?      @relation(fields: [job_id], references: [id])
+  payment     payment[]
+}
+
+model feedback {
+  id             Int              @id @default(autoincrement())
+  job_id         Int?
+  job_code       String?
+  offer_id       Int?
+  handyman_id    Int?
+  customer_id    Int?
+  note           String?
+  image          String[]
+  insert_time    DateTime         @default(now())
+  insert_by      Int?
+  cancelTime     DateTime?
+  completeTime   DateTime?
+  incompleteTime DateTime?
+  customer       customer?        @relation(fields: [customer_id], references: [id])
+  handyman       handyman?        @relation(fields: [handyman_id], references: [id])
+  job            job?             @relation(fields: [job_id], references: [id])
+  offer          offer?           @relation(fields: [offer_id], references: [id])
+  feedback_photo feedback_photo[]
+}
+
+model feedback_photo {
+  id          Int       @id @default(autoincrement())
+  feedback_id Int?
+  uri         String?
+  is_video    Boolean   @default(false)
+  thumbnail   String?
+  feedback    feedback? @relation(fields: [feedback_id], references: [id])
+}
+
+model handyman {
+  id                                                                    Int                       @id @default(autoincrement())
+  uuid                                                                  String?
+  email                                                                 String                    @unique(map: "handyman.email_unique")
+  user_name                                                             String                    @unique(map: "handyman.user_name_unique")
+  password                                                              String
+  role                                                                  Int?
+  status                                                                Int?                      @default(1)
+  first_name                                                            String?
+  last_name                                                             String?
+  mobile_number                                                         String?
+  version_number_click                                                  Int?
+  activate_time                                                         DateTime?
+  approve_time                                                          DateTime?
+  device_token                                                          String?
+  deactivate_by                                                         Int?
+  position                                                              Int?
+  position_other                                                        String?
+  device_info                                                           Json?
+  insert_time                                                           DateTime                  @default(now())
+  insert_by                                                             Int?
+  update_time                                                           DateTime?
+  update_by                                                             Int?
+  delete_time                                                           DateTime?
+  delete_by                                                             Int?
+  reminder                                                              Boolean?                  @default(false)
+  avatar                                                                String?
+  name                                                                  String?
+  services                                                              Int[]
+  main_holder_id                                                        Int?
+  googleToken                                                           String?
+  calendarStatus                                                        Boolean?
+  gst                                                                   String?
+  service_pending                                                       Int[]
+  address                                                               String?
+  uen                                                                   String?
+  assign_worker_histories_assign_worker_histories_handyman_idTohandyman assign_worker_histories[] @relation("assign_worker_histories_handyman_idTohandyman")
+  assign_worker_histories_assign_worker_histories_worker_idTohandyman   assign_worker_histories[] @relation("assign_worker_histories_worker_idTohandyman")
+  channel_channel_handyman_idTohandyman                                 channel[]                 @relation("channel_handyman_idTohandyman")
+  channel_channel_worker_idTohandyman                                   channel[]                 @relation("channel_worker_idTohandyman")
+  extra                                                                 extra[]
+  feedback                                                              feedback[]
+  handyman                                                              handyman?                 @relation("handymanTohandyman", fields: [main_holder_id], references: [id])
+  other_handyman                                                        handyman[]                @relation("handymanTohandyman")
+  history_action                                                        history_action[]
+  history_offer                                                         history_offer[]
+  job_job_handyman_idTohandyman                                         job[]                     @relation("job_handyman_idTohandyman")
+  job_job_worker_idTohandyman                                           job[]                     @relation("job_worker_idTohandyman")
+  message                                                               message[]
+  milestone                                                             milestone[]
+  notification_customer                                                 notification_customer[]
+  notification_handyman                                                 notification_handyman[]
+  offer                                                                 offer[]
+  payment                                                               payment[]
+  recipient                                                             recipient[]
+  reschedule                                                            reschedule[]
+  review                                                                review[]
+  token                                                                 token[]
+}
+
+model history_action {
+  id            Int       @id @default(autoincrement())
+  job_id        Int?
+  job_code      String?
+  offer_id      Int?
+  handyman_id   Int?
+  customer_id   Int?
+  status        Int       @default(1)
+  content       String?
+  action_time   DateTime  @default(now())
+  schedule_time DateTime?
+  note          String?
+  amount        Int?
+  amount_type   Int?
+  insert_time   DateTime  @default(now())
+  insert_by     Int?
+  update_time   DateTime?
+  update_by     Int?
+  delete_time   DateTime?
+  delete_by     Int?
+  customer      customer? @relation(fields: [customer_id], references: [id])
+  handyman      handyman? @relation(fields: [handyman_id], references: [id])
+  job           job?      @relation(fields: [job_id], references: [id])
+  offer         offer?    @relation(fields: [offer_id], references: [id])
+}
+
+model history_offer {
+  id                Int       @id @default(autoincrement())
+  handyman_id       Int?
+  offer_id          Int?
+  amount            Float?
+  status            Int?      @default(1)
+  note              String?
+  insert_time       DateTime  @default(now())
+  insert_by         Int?
+  labour_cost       Float?
+  material_cost     Float?
+  mobilization_cost Float?
+  schedule_time     DateTime?
+  update_time       DateTime?
+  update_by         Int?
+  delete_time       DateTime?
+  delete_by         Int?
+  handyman          handyman? @relation(fields: [handyman_id], references: [id])
+  offer             offer?    @relation(fields: [offer_id], references: [id])
+}
+
+model job {
+  id                                 Int                       @id @default(autoincrement())
+  code                               String?                   @unique(map: "job.code_unique")
+  customer_id                        Int?
+  service_id                         Int?
+  address_id                         Int?
+  offer_count                        Int?                      @default(0)
+  is_urgent                          Boolean?
+  paid_amount                        Float?
+  gst_amount                         Float?
+  image                              String[]
+  video                              String[]
+  note                               String?
+  indicative_value                   Int?
+  expect_time                        DateTime?
+  expire_time                        DateTime?
+  status                             Int?                      @default(2)
+  progress_time                      DateTime?
+  complete_time                      DateTime?
+  owner_complete_time                DateTime?
+  cancel_time                        DateTime?
+  cancel_by                          Int?
+  is_abort                           Boolean?                  @default(false)
+  complete_by                        Int?
+  reason                             Int?
+  count_reschedule                   Int?                      @default(0)
+  hm_count_reschedule                Int?                      @default(0)
+  edit_time                          DateTime?
+  notify                             Boolean?                  @default(false)
+  notify_24h                         Boolean?                  @default(false)
+  notify_2h                          Boolean?                  @default(false)
+  can_cancel                         Boolean?                  @default(true)
+  payment_status                     Int?                      @default(1)
+  handyman_id                        Int?
+  worker_id                          Int?
+  labour_cost                        Float?
+  material_cost                      Float?
+  mobilization_cost                  Float?
+  schedule_time                      DateTime?
+  arrive_time                        DateTime?
+  handyman_note                      String?
+  insert_time                        DateTime                  @default(now())
+  insert_by                          Int?
+  update_time                        DateTime?
+  update_by                          Int?
+  delete_time                        DateTime?
+  delete_by                          Int?
+  new_schedule_time                  DateTime?
+  complete_note                      String?
+  cancel_note                        String?
+  offer_fixelist_id                  Int[]
+  history                            Json[]
+  offer_id                           Int?                      @unique(map: "job.offer_id_unique")
+  fixelist_feedback                  String?
+  fixel_feedback                     String?
+  incomplete                         Boolean                   @default(false)
+  payment_fixelist_time              DateTime?
+  payment_fixel_time                 DateTime?
+  on_hold                            Boolean?                  @default(false)
+  approveFixelist                    Boolean?                  @default(false)
+  approveFixel                       Boolean?                  @default(false)
+  assign_worker_histories            assign_worker_histories[]
+  channel                            channel[]
+  extra                              extra[]
+  feedback                           feedback[]
+  history_action                     history_action[]
+  address                            address?                  @relation(fields: [address_id], references: [id])
+  customer                           customer?                 @relation(fields: [customer_id], references: [id])
+  handyman_job_handyman_idTohandyman handyman?                 @relation("job_handyman_idTohandyman", fields: [handyman_id], references: [id])
+  offer_job_offer_idTooffer          offer?                    @relation("job_offer_idTooffer", fields: [offer_id], references: [id])
+  service                            service?                  @relation(fields: [service_id], references: [id])
+  handyman_job_worker_idTohandyman   handyman?                 @relation("job_worker_idTohandyman", fields: [worker_id], references: [id])
+  job_media                          job_media[]
+  milestone                          milestone[]
+  notification_customer              notification_customer[]
+  notification_handyman              notification_handyman[]
+  offer_offer_job_idTojob            offer[]                   @relation("offer_job_idTojob")
+  payment                            payment[]
+  reschedule                         reschedule[]
+  review                             review?
+}
+
+model job_media {
+  id           Int     @id @default(autoincrement())
+  job_id       Int?
+  uri          String?
+  is_video     Boolean @default(false)
+  thumbnail    String?
+  is_completed Boolean @default(false)
+  is_cancelled Boolean @default(false)
+  job          job?    @relation(fields: [job_id], references: [id])
+}
+
+model media {
+  key   String
+  value String
+  id    Int    @id @default(autoincrement())
+  app   Int
+
+  @@unique([key, app], map: "media_unique")
+}
+
+model message {
+  id            Int       @id @default(autoincrement())
+  content       String?
+  image         String?
+  is_seen       Boolean?  @default(false)
+  channel_id    Int?
+  handyman_id   Int?
+  customer_id   Int?
+  insert_time   DateTime  @default(now())
+  insert_by     Int?
+  update_time   DateTime?
+  update_by     Int?
+  delete_time   DateTime?
+  delete_by     Int?
+  owner_seen    Boolean?  @default(false)
+  fixelist_seen Boolean?  @default(false)
+  worker_seen   Boolean?  @default(false)
+  channel       channel?  @relation(fields: [channel_id], references: [id])
+  customer      customer? @relation(fields: [customer_id], references: [id])
+  handyman      handyman? @relation(fields: [handyman_id], references: [id])
+}
+
+model milestone {
+  id            Int       @id @default(autoincrement())
+  job_id        Int?
+  job_code      String?
+  handyman_id   Int?
+  customer_id   Int?
+  milestoneTime DateTime?
+  text          String?
+  type          Int?
+  status        Int       @default(1)
+  isCompleted   Boolean   @default(false)
+  insert_time   DateTime  @default(now())
+  insert_by     Int?
+  delete_time   DateTime?
+  delete_by     Int?
+  customer      customer? @relation(fields: [customer_id], references: [id])
+  handyman      handyman? @relation(fields: [handyman_id], references: [id])
+  job           job?      @relation(fields: [job_id], references: [id])
+}
+
+model notification_customer {
+  id               Int       @id @default(autoincrement())
+  customer_id      Int?
+  is_seen          Boolean?  @default(false)
+  type             Int?
+  content          String?
+  job_id           Int?
+  job_code         String?
+  offer_id         Int?
+  maintenance_time DateTime?
+  insert_time      DateTime  @default(now())
+  insert_by        Int?
+  update_time      DateTime?
+  update_by        Int?
+  delete_time      DateTime?
+  delete_by        Int?
+  handyman_id      Int?
+  customer         customer? @relation(fields: [customer_id], references: [id])
+  handyman         handyman? @relation(fields: [handyman_id], references: [id])
+  job              job?      @relation(fields: [job_id], references: [id])
+  offer            offer?    @relation(fields: [offer_id], references: [id])
+}
+
+model notification_handyman {
+  id               Int       @id @default(autoincrement())
+  handyman_id      Int?
+  is_seen          Boolean?  @default(false)
+  type             Int?
+  content          String?
+  job_id           Int?
+  job_code         String?
+  offer_id         Int?
+  maintenance_time DateTime?
+  insert_time      DateTime  @default(now())
+  insert_by        Int?
+  update_time      DateTime?
+  update_by        Int?
+  delete_time      DateTime?
+  delete_by        Int?
+  customer_id      Int?
+  customer         customer? @relation(fields: [customer_id], references: [id])
+  handyman         handyman? @relation(fields: [handyman_id], references: [id])
+  job              job?      @relation(fields: [job_id], references: [id])
+  offer            offer?    @relation(fields: [offer_id], references: [id])
+}
+
+model offer {
+  id                      Int                     @id @default(autoincrement())
+  job_id                  Int?
+  service_id              Int?
+  is_urgent               Boolean?
+  handyman_id             Int?
+  labour_cost             Float?
+  material_cost           Float?
+  mobilization_cost       Float?
+  gst                     Float?
+  note                    String?
+  schedule_time           DateTime?
+  status                  Int?                    @default(1)
+  expire_time             DateTime?
+  arrive_time             DateTime?
+  cancel_time             DateTime?
+  cancel_by               Int?
+  insert_time             DateTime                @default(now())
+  insert_by               Int?
+  update_time             DateTime?
+  update_by               Int?
+  delete_time             DateTime?
+  delete_by               Int?
+  history                 Json[]
+  channel                 channel?
+  feedback                feedback[]
+  history_action          history_action[]
+  history_offer           history_offer[]
+  job_job_offer_idTooffer job?                    @relation("job_offer_idTooffer")
+  notification_customer   notification_customer[]
+  notification_handyman   notification_handyman[]
+  handyman                handyman?               @relation(fields: [handyman_id], references: [id])
+  job_offer_job_idTojob   job?                    @relation("offer_job_idTojob", fields: [job_id], references: [id])
+  payment                 payment[]
+  reschedule              reschedule[]
+}
+
+model payment {
+  id               Int       @id @default(autoincrement())
+  type             Int?
+  job_code         String?
+  customer_id      Int?
+  handyman_id      Int?
+  charge_id        String?   @unique(map: "payment.charge_id_unique")
+  job_id           Int?
+  offer_id         Int?
+  extra_id         Int?
+  amount           Float?
+  net              Float?
+  fee              Float?
+  fee_vat          Float?
+  interest         Float?
+  interest_vat     Float?
+  funding_amount   Float?
+  refunded_amount  Float?
+  refundable       Boolean   @default(false)
+  paid             Boolean   @default(false)
+  currency         String?
+  funding_currency String?
+  status           String?
+  response         Json?
+  result           Int?      @default(0)
+  ref_charge_id    String?
+  result_time      DateTime?
+  progress_time    DateTime?
+  penalty          Float?
+  insert_time      DateTime  @default(now())
+  insert_by        Int?
+  update_time      DateTime?
+  update_by        Int?
+  delete_time      DateTime?
+  delete_by        Int?
+  approve          Boolean?  @default(false)
+  customer         customer? @relation(fields: [customer_id], references: [id])
+  extra            extra?    @relation(fields: [extra_id], references: [id])
+  handyman         handyman? @relation(fields: [handyman_id], references: [id])
+  job              job?      @relation(fields: [job_id], references: [id])
+  offer            offer?    @relation(fields: [offer_id], references: [id])
+}
+
+model promotion {
+  id          Int       @id @default(autoincrement())
+  image       String
+  insert_time DateTime  @default(now())
+  insert_by   Int?
+  update_time DateTime?
+  update_by   Int?
+  delete_time DateTime?
+  delete_by   Int?
+}
+
+model recipient {
+  id           Int       @id @default(autoincrement())
+  recipient_id String?
+  verified     Boolean?
+  verified_at  DateTime?
+  active       Boolean?
+  activated_at DateTime?
+  bank_name    String?
+  bank_number  String?
+  bank_brand   String?
+  handyman_id  Int?
+  status       Int?      @default(1)
+  insert_time  DateTime  @default(now())
+  insert_by    Int?
+  update_time  DateTime?
+  update_by    Int?
+  delete_time  DateTime?
+  delete_by    Int?
+  handyman     handyman? @relation(fields: [handyman_id], references: [id])
+}
+
+model reschedule {
+  id            Int       @id @default(autoincrement())
+  job_id        Int?
+  note          String?
+  status        Int?      @default(1)
+  insert_time   DateTime  @default(now())
+  insert_by     Int?
+  update_time   DateTime?
+  update_by     Int?
+  delete_time   DateTime?
+  delete_by     Int?
+  reschedule_by Int?
+  offer_id      Int?
+  arrive_time   DateTime?
+  handyman_id   Int?
+  customer_id   Int?
+  schedule_time DateTime?
+  confirm_time  DateTime?
+  confirm_by    Int?
+  customer      customer? @relation(fields: [customer_id], references: [id])
+  handyman      handyman? @relation(fields: [handyman_id], references: [id])
+  job           job?      @relation(fields: [job_id], references: [id])
+  offer         offer?    @relation(fields: [offer_id], references: [id])
+}
+
+model review {
+  job_code             String    @id @unique(map: "review.job_code_unique")
+  job_id               Int?      @unique(map: "review.job_id_unique")
+  star_for_customer    Int?
+  star_for_handyman    Int?
+  time_for_customer    DateTime?
+  time_for_handyman    DateTime?
+  content_for_customer String?
+  content_for_handyman String?
+  active_for_customer  Boolean?  @default(true)
+  active_for_handyman  Boolean?  @default(true)
+  customer_id          Int?
+  insert_time          DateTime  @default(now())
+  insert_by            Int?
+  update_time          DateTime?
+  update_by            Int?
+  delete_time          DateTime?
+  delete_by            Int?
+  handyman_id          Int?
+  customer             customer? @relation(fields: [customer_id], references: [id])
+  handyman             handyman? @relation(fields: [handyman_id], references: [id])
+  job                  job?      @relation(fields: [job_id], references: [id])
+}
+
+model service {
+  id           Int            @id @default(autoincrement())
+  name         String?
+  icon         String?
+  color        String?
+  second_color String?
+  code         String?        @db.VarChar(2)
+  font_size    Int?           @default(16)
+  order        Int[]
+  insert_time  DateTime       @default(now())
+  insert_by    Int?
+  update_time  DateTime?
+  update_by    Int?
+  delete_time  DateTime?
+  delete_by    Int?
+  job          job[]
+  service_type service_type[]
+}
+
+model service_type {
+  id          Int       @id @default(autoincrement())
+  name        String?
+  service_id  Int?
+  insert_time DateTime  @default(now())
+  insert_by   Int?
+  update_time DateTime?
+  update_by   Int?
+  delete_time DateTime?
+  delete_by   Int?
+  service     service?  @relation(fields: [service_id], references: [id])
+}
+
+model setting {
+  id                         Int       @id @default(autoincrement())
+  mobilization_cost          Float?    @default(40)
+  max_offer                  Int?      @default(3)
+  max_image                  Int?      @default(5)
+  max_video                  Int?      @default(1)
+  gst                        Int?      @default(7)
+  max_address                Int?      @default(5)
+  delay_pay_minute           Int?      @default(10)
+  offer_expire_minute        Int?      @default(240)
+  offer_expire_minute_urgent Int?      @default(60)
+  job_expire_minute          Int?      @default(240)
+  job_expire_minute_urgent   Int?      @default(60)
+  job_expire_day             Int?      @default(7)
+  offer_max_range            Int?      @default(7)
+  job_expect_max_day         Int?      @default(14)
+  job_expect_min_minute      Int?      @default(180)
+  job_urgent_minute          Int?      @default(1440)
+  arrive_minute              Int?      @default(60)
+  reschedule_max_day         Int?      @default(7)
+  term_url                   String?
+  policy_url                 String?
+  faq_url                    String?
+  app_log_number             Int?
+  compress_percent           Int?      @default(2)
+  image_min_size             Int?      @default(3)
+  video_min_size             Int?      @default(15)
+  pay_complete_handy         Int?      @default(80)
+  pay_cancel_handy           Int?      @default(30)
+  pay_abort_handy            Int?      @default(20)
+  pay_cancel_owner           Int?      @default(50)
+  insert_time                DateTime  @default(now())
+  insert_by                  Int?
+  update_time                DateTime?
+  update_by                  Int?
+  delete_time                DateTime?
+  delete_by                  Int?
+  approve_payment            Boolean?
+}
+
+model signin {
+  id          Int       @id @default(autoincrement())
+  handyman_id Int?
+  customer_id Int?
+  user_id     Int?
+  device_info Json?
+  time        DateTime? @default(now())
+}
+
+model summary_day {
+  id                      Int       @id @default(autoincrement())
+  day                     String?   @unique(map: "summary_day.day_unique")
+  fullDay                 DateTime?
+  owner_activate          Int?
+  total_owner_activate    Int?
+  handy_activate          Int?
+  handy_approve           Int?
+  total_handy_approve     Int?
+  new_job                 Int?
+  discuss_job             Int?
+  impending_job           Int?
+  complete_job            Int?
+  cancel_job              Int?
+  total_new_job           Int?
+  total_discuss_job       Int?
+  total_impending_job     Int?
+  total_complete_job      Int?
+  total_cancel_job        Int?
+  payment_received        Float?
+  payment_refunded        Float?
+  payment_paid            Float?
+  payment_received_no_gst Float?
+  payment_refunded_no_gst Float?
+  payment_paid_no_gst     Float?
+  insert_time             DateTime  @default(now())
+}
+
+model summary_month {
+  id                      Int       @id @default(autoincrement())
+  month                   String?   @unique(map: "summary_month.month_unique")
+  fullDay                 DateTime?
+  owner_activate          Int?
+  handy_approve           Int?
+  total_owner_activate    Int?
+  total_handy_approve     Int?
+  new_job                 Int?
+  payment_received        Float?
+  payment_refunded        Float?
+  payment_paid            Float?
+  payment_received_no_gst Float?
+  payment_refunded_no_gst Float?
+  payment_paid_no_gst     Float?
+  insert_time             DateTime  @default(now())
+  handy_activate          Int?
+  discuss_job             Int?
+  impending_job           Int?
+  complete_job            Int?
+  cancel_job              Int?
+  total_new_job           Int?
+  total_discuss_job       Int?
+  total_impending_job     Int?
+  total_complete_job      Int?
+  total_cancel_job        Int?
+}
+
+model summary_week {
+  id                      Int       @id @default(autoincrement())
+  week                    String?   @unique(map: "summary_week.week_unique")
+  fullDay                 DateTime?
+  owner_activate          Int?
+  handy_approve           Int?
+  total_owner_activate    Int?
+  total_handy_approve     Int?
+  new_job                 Int?
+  payment_received        Float?
+  payment_refunded        Float?
+  payment_paid            Float?
+  payment_received_no_gst Float?
+  payment_refunded_no_gst Float?
+  payment_paid_no_gst     Float?
+  insert_time             DateTime  @default(now())
+  handy_activate          Int?
+  discuss_job             Int?
+  impending_job           Int?
+  complete_job            Int?
+  cancel_job              Int?
+  total_new_job           Int?
+  total_discuss_job       Int?
+  total_impending_job     Int?
+  total_complete_job      Int?
+  total_cancel_job        Int?
+}
+
+model summary_year {
+  id                      Int       @id @default(autoincrement())
+  year                    String?   @unique(map: "summary_year.year_unique")
+  fullDay                 DateTime?
+  owner_activate          Int?
+  handy_approve           Int?
+  total_owner_activate    Int?
+  total_handy_approve     Int?
+  new_job                 Int?
+  payment_received        Float?
+  payment_refunded        Float?
+  payment_paid            Float?
+  payment_received_no_gst Float?
+  payment_refunded_no_gst Float?
+  payment_paid_no_gst     Float?
+  insert_time             DateTime  @default(now())
+  handy_activate          Int?
+  discuss_job             Int?
+  impending_job           Int?
+  complete_job            Int?
+  cancel_job              Int?
+  total_new_job           Int?
+  total_discuss_job       Int?
+  total_impending_job     Int?
+  total_complete_job      Int?
+  total_cancel_job        Int?
+}
+
+model text_en {
+  key   String
+  value String
+  id    Int    @id @default(autoincrement())
+  app   Int
+
+  @@unique([key, app], map: "text_en_unique")
+}
+
+model token {
+  id          Int       @id @default(autoincrement())
+  token       String    @unique(map: "token.token_unique")
+  status      Int?      @default(1)
+  user_id     Int?
+  handyman_id Int?
+  customer_id Int?
+  type        Int?
+  insert_time DateTime  @default(now())
+  customer    customer? @relation(fields: [customer_id], references: [id])
+  handyman    handyman? @relation(fields: [handyman_id], references: [id])
+  user        user?     @relation(fields: [user_id], references: [id])
+}
+
+model user {
+  id          Int       @id @default(autoincrement())
+  uuid        String?
+  email       String    @unique(map: "user.email_unique")
+  user_name   String    @unique(map: "user.user_name_unique")
+  password    String
+  role        Int?
+  first_name  String?
+  last_name   String?
+  insert_time DateTime  @default(now())
+  insert_by   Int?
+  update_time DateTime?
+  update_by   Int?
+  delete_time DateTime?
+  delete_by   Int?
+  token       token[]
+}
