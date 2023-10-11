@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common'
 import { job } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
-import { error } from 'console'
-import { JobDtailGeneralInformation, JobDto } from 'src/admin/dto/job.dto'
+import { JobDtailGeneralInformationDto, JobViewDto, ActionUserDto, JobDto } from 'src/admin/dto/job.dto'
+import { convertToTimeZone } from 'src/shared/timezone.utility'
+import { generateSixDigitCode } from 'src/shared/uniqueDigitsCode'
 
 @Injectable({})
 export class JobService {
 
-    constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService) { }
 
-    async getJobs(): Promise<JobDto[]> {
+    async getJobs(): Promise<JobViewDto[]> {
         try {
             const jobs = await this.prisma.job.findMany({
                 where: {
@@ -22,7 +23,7 @@ export class JobService {
                     status: true,
                     insert_time: true,
                     complete_time: true,
-                    new_schedule_time: true,
+                    schedule_time: true,
                     customer: {
                         select: {
                             id: true,
@@ -49,46 +50,7 @@ export class JobService {
         }
     }
 
-    // async detailJob(id: number): Promise<JobGenerateInformationI> {
-    //     try {
-    //         const jobDetail: JobGenerateInformationI = await this.prisma.$queryRaw`
-            //     SELECT DISTINCT
-            //         job.id,
-            //         job.code,
-            //         service.name,
-            //         job.is_urgent AS priority,
-            //         job.insert_time,
-            //         job.new_schedule_time AS scheduled_time,
-            //         customer.user_name AS customer,
-            //         handyman.name AS fixellist,
-            //         handyman.name AS worker,
-            //         SUM(CASE WHEN payment.status = 'completed' THEN payment.amount ELSE 0 END) AS total_paid_amount,
-            //         SUM(payment.fee + payment.fee_vat + payment.interest_vat) AS gst,
-            //         address.floor,
-            //         address.blk_no,
-            //         address.unit_no,
-            //         address.building,
-            //         address.street,
-            //         address.country,
-            //         address.post_code
-            //     FROM job
-            //     LEFT JOIN service ON job.service_id = service.id
-            //     LEFT JOIN customer ON job.customer_id = customer.id
-            //     LEFT JOIN handyman ON job.handyman_id = handyman.id
-            //     LEFT JOIN payment ON job.code = payment.job_code
-            //     LEFT JOIN address ON customer.id = address.customer_id
-            //     WHERE job.id = ${Number(2)}
-            //     GROUP BY job.id, job.code, service.name, job.is_urgent, job.insert_time, job.new_schedule_time, customer.user_name, handyman.name, address.floor, address.blk_no, address.unit_no, address.building, address.street, address.country, address.post_code
-            // `
-    //         console.log('TEST')
-    //         console.log(jobDetail)
-    //         return jobDetail[0]
-    //     } catch (error) {
-    //         throw error
-    //     }
-    // } 
-
-    async detailJob(id: number): Promise<JobDtailGeneralInformation> {
+    async detailGeneralInformation(id: number): Promise<JobDtailGeneralInformationDto> {
         try {
             const job = await this.prisma.job.findUnique({
                 where: {
@@ -99,8 +61,10 @@ export class JobService {
                     code: true,
                     is_urgent: true,
                     insert_time: true,
-                    new_schedule_time: true,
+                    schedule_time: true,
                     complete_time: true,
+                    gst_amount: true,
+                    paid_amount: true,
                     service: {
                         select: { name: true }
                     },
@@ -132,29 +96,111 @@ export class JobService {
                             country: true,
                             post_code: true
                         }
-                    },
-                    payment: {
-                        select: {
-                            amount: true
-                        }
-                    }       
+                    }
                 }
             })
-            if (!job) {
-                throw new Error(`Job with id ${id} not found`);
-            }
-          
-            const totalPaidAmount = job.payment.reduce((acc, payment) => acc + (payment.amount || 0), 0);
-          
-            console.log( {
-                ...job,
-                total_paid_amount: totalPaidAmount
-            })
-            
-            return 
+
+            return job
         } catch (error) {
             throw error
         }
     }
 
+    async updateGeneraInformation(id: number, jobGenerateInformationDto: JobDtailGeneralInformationDto): Promise<job> {
+        try {
+            const {
+                is_urgent,
+                insert_time,
+                schedule_time,
+                complete_time,
+                paid_amount,
+                gst_amount,
+            } = jobGenerateInformationDto
+
+            const updatedJob = await this.prisma.job.update({
+                where: {
+                    id: Number(id)
+                },
+                data: {
+                    is_urgent,
+                    insert_time,
+                    schedule_time,
+                    complete_time,
+                    paid_amount,
+                    gst_amount
+                }
+            })
+            return updatedJob
+        } catch (error) {
+            throw error
+        }
+    }
+
+
+    async softDeleteJob(id: number, actionUser: ActionUserDto): Promise<boolean> {
+        try {
+            const data = await this.prisma.job.update({
+                where: { id },
+                data: {
+                    delete_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
+                    delete_by: actionUser.user_id
+                }
+            })
+            return true
+        } catch (error) {
+            throw error
+        }
+    }
+    
+
+    async restoreJob(id: number, actionUser: ActionUserDto): Promise<boolean> {
+        try {
+            await this.prisma.job.update({
+                where: { id },
+                data: {
+                    delete_time: null,
+                    delete_by: null,
+                    update_by: actionUser.user_id,
+                    update_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET)
+                },
+            })
+            return true
+        } catch (error) {
+            throw error
+        }
+    }
+
+    async createJob(jobDto: JobDto): Promise<job> {
+        try {
+            const { customer_id, service_id, address_id, ...restJobDto } = jobDto
+
+            const service = await this.prisma.service.findUnique({
+                where: { id: service_id },
+                select: { code: true }
+            })
+
+            if (!service) {
+                throw new Error('Service not found.')
+            }
+
+            const sixDigitCode = generateSixDigitCode()
+            const code = `${service.code}#${sixDigitCode}`
+
+            const data: any = {
+                ...restJobDto,
+                code,
+                customer: { connect: { id: customer_id }},
+                service: { connect: { id: service_id }},
+                address: { connect: { id: address_id }},
+            }
+
+            const job = await this.prisma.job.create({
+                data,
+            })
+
+            return job
+        } catch (error) {
+            throw error
+        }
+    }
 }
