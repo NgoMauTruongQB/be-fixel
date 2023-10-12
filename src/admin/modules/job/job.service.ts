@@ -4,13 +4,18 @@ import { PrismaService } from '../prisma/prisma.service'
 import { JobDtailGeneralInformationDto, JobViewDto, ActionUserDto, JobDto } from 'src/admin/dto/job.dto'
 import { convertToTimeZone } from 'src/shared/timezone.utility'
 import { generateSixDigitCode } from 'src/shared/uniqueDigitsCode'
+import { PaginationDto } from 'src/admin/dto/pagination.dto'
 
 @Injectable({})
 export class JobService {
 
     constructor(private prisma: PrismaService) { }
 
-    async getJobs(): Promise<JobViewDto[]> {
+    async getJobs(paginationDto: PaginationDto): Promise<JobViewDto[]> {
+
+        const { page = 1, limit = 10 } = paginationDto
+        const skip = (page - 1) * limit
+
         try {
             const jobs = await this.prisma.job.findMany({
                 where: {
@@ -42,7 +47,9 @@ export class JobService {
                             name: true,
                         }
                     }
-                }
+                },
+                skip: Number(skip),
+                take: Number(limit),
             })
             return jobs
         } catch (error) {
@@ -50,7 +57,7 @@ export class JobService {
         }
     }
 
-    async detailGeneralInformation(id: number): Promise<JobDtailGeneralInformationDto> {
+    async getDetailGeneralInformation(id: number): Promise<JobDtailGeneralInformationDto> {
         try {
             const job = await this.prisma.job.findUnique({
                 where: {
