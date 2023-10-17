@@ -93,6 +93,7 @@ export class JobService {
                     gst_amount: true,
                     paid_amount: true,
                     payment_status: true,
+                    code: true,
                     assign_worker_histories: {
                         select: {
                             handyman_assign_worker_histories_handyman_idTohandyman: {
