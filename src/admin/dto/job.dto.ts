@@ -261,6 +261,8 @@ export class JobDtailGeneralInformationDto {
     paid_amount: number
     gst_amount: number
     cancel_time: Date
+    status: number
+    cancel_by: number
     service: {
         name: string
     }

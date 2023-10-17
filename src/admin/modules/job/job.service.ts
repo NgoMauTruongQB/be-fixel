@@ -476,6 +476,8 @@ export class JobService {
                     gst_amount: true,
                     paid_amount: true,
                     cancel_time: true,
+                    status: true,
+                    cancel_by: true,
                     service: {
                         select: { name: true }
                     },
