@@ -94,6 +94,7 @@ export class JobService {
                     paid_amount: true,
                     payment_status: true,
                     code: true,
+                    owner_complete_time: true,
                     assign_worker_histories: {
                         select: {
                             handyman_assign_worker_histories_handyman_idTohandyman: {
@@ -229,7 +230,6 @@ export class JobService {
                             }
                         }
                     },
-                    owner_complete_time: true,
                     feedback: {
                         select: {
                             id: true,
