@@ -198,7 +198,7 @@ const app_module_1 = __webpack_require__(5);
 const common_1 = __webpack_require__(6);
 const bodyParser = __webpack_require__(20);
 async function bootstrap() {
-    const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const app = await core_1.NestFactory.create(app_module_1.AppModule, { cors: true });
     app.use(bodyParser.urlencoded({ extended: true }));
     app.useGlobalPipes(new common_1.ValidationPipe({
         transform: true,
@@ -314,7 +314,7 @@ const job_service_1 = __webpack_require__(9);
 const globalClass_1 = __webpack_require__(14);
 const globalEnum_1 = __webpack_require__(15);
 const job_dto_1 = __webpack_require__(16);
-const pagination_dto_1 = __webpack_require__(18);
+const paginationJob_dto_1 = __webpack_require__(18);
 let JobController = class JobController {
     constructor(jobService) {
         this.jobService = jobService;
@@ -425,7 +425,7 @@ __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof pagination_dto_1.PaginationDto !== "undefined" && pagination_dto_1.PaginationDto) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [typeof (_b = typeof paginationJob_dto_1.PaginationJobDto !== "undefined" && paginationJob_dto_1.PaginationJobDto) === "function" ? _b : Object]),
     __metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
 ], JobController.prototype, "getJobs", null);
 __decorate([
@@ -439,7 +439,7 @@ __decorate([
     (0, common_1.Get)('pending-jobs'),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_e = typeof pagination_dto_1.PaginationDto !== "undefined" && pagination_dto_1.PaginationDto) === "function" ? _e : Object]),
+    __metadata("design:paramtypes", [typeof (_e = typeof paginationJob_dto_1.PaginationJobDto !== "undefined" && paginationJob_dto_1.PaginationJobDto) === "function" ? _e : Object]),
     __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
 ], JobController.prototype, "getPendingJobs", null);
 __decorate([
@@ -447,7 +447,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_g = typeof pagination_dto_1.PaginationDto !== "undefined" && pagination_dto_1.PaginationDto) === "function" ? _g : Object]),
+    __metadata("design:paramtypes", [Number, typeof (_g = typeof paginationJob_dto_1.PaginationJobDto !== "undefined" && paginationJob_dto_1.PaginationJobDto) === "function" ? _g : Object]),
     __metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
 ], JobController.prototype, "getOffersByJob", null);
 __decorate([
@@ -455,7 +455,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_j = typeof pagination_dto_1.PaginationDto !== "undefined" && pagination_dto_1.PaginationDto) === "function" ? _j : Object]),
+    __metadata("design:paramtypes", [Number, typeof (_j = typeof paginationJob_dto_1.PaginationJobDto !== "undefined" && paginationJob_dto_1.PaginationJobDto) === "function" ? _j : Object]),
     __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
 ], JobController.prototype, "getPaymentsByJob", null);
 __decorate([
@@ -537,18 +537,37 @@ let JobService = class JobService {
         this.prisma = prisma;
     }
     async getJobs(paginationDto) {
-        const { page = 1, limit = 9 } = paginationDto;
+        const { page = 1, limit = 9, service_id, status, username, id, priority } = paginationDto;
         const skip = (page - 1) * limit;
         try {
+            const filterConditions = {
+                delete_time: null,
+            };
+            if (service_id) {
+                filterConditions.service_id = Number(service_id);
+            }
+            if (status) {
+                filterConditions.status = Number(status);
+            }
+            if (priority) {
+                filterConditions.is_urgent = Boolean(priority);
+            }
+            if (id) {
+                filterConditions.code = String(id);
+            }
+            if (username) {
+                filterConditions.customer = {
+                    user_name: username,
+                };
+            }
             const [jobs, totalCount] = await Promise.all([
                 this.prisma.job.findMany({
-                    where: {
-                        delete_time: null,
-                    },
+                    where: filterConditions,
                     select: {
                         id: true,
                         code: true,
                         status: true,
+                        service_id: true,
                         insert_time: true,
                         complete_time: true,
                         schedule_time: true,
@@ -1631,26 +1650,53 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PaginationDto = void 0;
+exports.PaginationJobDto = void 0;
 const class_transformer_1 = __webpack_require__(19);
 const class_validator_1 = __webpack_require__(17);
-class PaginationDto {
+class PaginationJobDto {
 }
-exports.PaginationDto = PaginationDto;
+exports.PaginationJobDto = PaginationJobDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
     (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
     __metadata("design:type", Number)
-], PaginationDto.prototype, "page", void 0);
+], PaginationJobDto.prototype, "page", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(1),
     (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
     __metadata("design:type", Number)
-], PaginationDto.prototype, "limit", void 0);
+], PaginationJobDto.prototype, "limit", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationJobDto.prototype, "service_id", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationJobDto.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], PaginationJobDto.prototype, "username", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], PaginationJobDto.prototype, "id", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], PaginationJobDto.prototype, "priority", void 0);
 
 
 /***/ }),
@@ -1729,7 +1775,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("300e4142e4fb8ac550a0")
+/******/ 		__webpack_require__.h = () => ("695a80b6ee13ea2cf059")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */

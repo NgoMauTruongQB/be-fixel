@@ -4,7 +4,7 @@ import { ResponseData } from 'src/admin/global/globalClass'
 import { job } from '@prisma/client'
 import { HttpMessage, HttpStatus } from 'src/admin/global/globalEnum'
 import { JobDtailGeneralInformationDto, JobViewDto, ActionUserDto, JobDto } from 'src/admin/dto/job.dto'
-import { PaginationDto } from 'src/admin/dto/pagination.dto'
+import { PaginationJobDto } from 'src/admin/dto/paginationJob.dto'
 
 
 @Controller('/api/job')
@@ -14,7 +14,7 @@ export class JobController {
 
     @Get()
     async getJobs(
-        @Query() paginationDto: PaginationDto
+        @Query() paginationDto: PaginationJobDto
     ): Promise<ResponseData<{ jobs: JobViewDto[], totalPages: number, page: number }>> {
         try {
             const data = await this.jobService.getJobs(paginationDto)
@@ -38,7 +38,7 @@ export class JobController {
 
     @Get('pending-jobs')
     async getPendingJobs(
-        @Query() paginationDto: PaginationDto
+        @Query() paginationDto: PaginationJobDto
     ): Promise<ResponseData<{ jobs: JobViewDto[], totalPages: number, page: number }>> {
         try {
             const data = await this.jobService.getPendingJobs(paginationDto)
@@ -51,7 +51,7 @@ export class JobController {
     @Get('offers-by-job/:id')
     async getOffersByJob(
         @Param('id') id: number,
-        @Query() paginationDto: PaginationDto
+        @Query() paginationDto: PaginationJobDto
     ): Promise<ResponseData<{ any: any, totalPages: number, page: number }>> {
         try {
             const data = await this.jobService.getOffersByJob(paginationDto, id)
@@ -64,7 +64,7 @@ export class JobController {
     @Get('payments-by-job/:id')
     async getPaymentsByJob(
         @Param('id') id: number,
-        @Query() paginationDto: PaginationDto
+        @Query() paginationDto: PaginationJobDto
     ): Promise<ResponseData<{ any: any, totalPages: number, page: number }>> {
         try {
             const data = await this.jobService.getPaymentsByJob(paginationDto, id)
