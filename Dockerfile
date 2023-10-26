@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:18-alpine AS builder
+FROM node:16 AS builder
 
 WORKDIR /app
 
@@ -19,7 +19,7 @@ RUN npm install
 
 COPY . .
 
-FROM node:18-alpine
+FROM node:16
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./

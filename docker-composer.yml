@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   fixel-be-container:
-    image: 03nmt/fixel-be-image:v1.0.3
+    image: 03nmt/fixel-be-image:v1.0.2
     container_name: fixel-be-container
     command: sh -c "npm install && npm run start:dev"
     ports:
@@ -18,7 +18,7 @@ services:
     container_name: postgres-container
     restart: always
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"  # Sử dụng biến môi trường POSTGRES_PORT hoặc mặc định 5432
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - fixel-postgres-database:/var/lib/postgresql/data
     networks:

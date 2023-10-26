@@ -196,7 +196,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core_1 = __webpack_require__(4);
 const app_module_1 = __webpack_require__(5);
 const common_1 = __webpack_require__(6);
-const bodyParser = __webpack_require__(20);
+const bodyParser = __webpack_require__(27);
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule, { cors: true });
     app.use(bodyParser.urlencoded({ extended: true }));
@@ -235,13 +235,17 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AppModule = void 0;
 const common_1 = __webpack_require__(6);
 const job_module_1 = __webpack_require__(7);
+const customer_module_1 = __webpack_require__(19);
+const fixelist_module_1 = __webpack_require__(23);
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            job_module_1.JobModule
+            job_module_1.JobModule,
+            customer_module_1.CustomerModule,
+            fixelist_module_1.FixelistModule
         ],
     })
 ], AppModule);
@@ -314,7 +318,7 @@ const job_service_1 = __webpack_require__(9);
 const globalClass_1 = __webpack_require__(14);
 const globalEnum_1 = __webpack_require__(15);
 const job_dto_1 = __webpack_require__(16);
-const paginationJob_dto_1 = __webpack_require__(18);
+const job_dto_2 = __webpack_require__(16);
 let JobController = class JobController {
     constructor(jobService) {
         this.jobService = jobService;
@@ -425,7 +429,7 @@ __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof paginationJob_dto_1.PaginationJobDto !== "undefined" && paginationJob_dto_1.PaginationJobDto) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [typeof (_b = typeof job_dto_2.PaginationJobDto !== "undefined" && job_dto_2.PaginationJobDto) === "function" ? _b : Object]),
     __metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
 ], JobController.prototype, "getJobs", null);
 __decorate([
@@ -439,7 +443,7 @@ __decorate([
     (0, common_1.Get)('pending-jobs'),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_e = typeof paginationJob_dto_1.PaginationJobDto !== "undefined" && paginationJob_dto_1.PaginationJobDto) === "function" ? _e : Object]),
+    __metadata("design:paramtypes", [typeof (_e = typeof job_dto_2.PaginationJobDto !== "undefined" && job_dto_2.PaginationJobDto) === "function" ? _e : Object]),
     __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
 ], JobController.prototype, "getPendingJobs", null);
 __decorate([
@@ -447,7 +451,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_g = typeof paginationJob_dto_1.PaginationJobDto !== "undefined" && paginationJob_dto_1.PaginationJobDto) === "function" ? _g : Object]),
+    __metadata("design:paramtypes", [Number, typeof (_g = typeof job_dto_2.PaginationJobDto !== "undefined" && job_dto_2.PaginationJobDto) === "function" ? _g : Object]),
     __metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
 ], JobController.prototype, "getOffersByJob", null);
 __decorate([
@@ -455,7 +459,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_j = typeof paginationJob_dto_1.PaginationJobDto !== "undefined" && paginationJob_dto_1.PaginationJobDto) === "function" ? _j : Object]),
+    __metadata("design:paramtypes", [Number, typeof (_j = typeof job_dto_2.PaginationJobDto !== "undefined" && job_dto_2.PaginationJobDto) === "function" ? _j : Object]),
     __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
 ], JobController.prototype, "getPaymentsByJob", null);
 __decorate([
@@ -1274,9 +1278,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ActionUserDto = exports.JobGenerateInformationUpdateDto = exports.JobDtailGeneralInformationDto = exports.JobViewDto = exports.JobDto = void 0;
+exports.PaginationJobDto = exports.ActionUserDto = exports.JobGenerateInformationUpdateDto = exports.JobDtailGeneralInformationDto = exports.JobViewDto = exports.JobDto = void 0;
 const class_validator_1 = __webpack_require__(17);
 const timezone_utility_1 = __webpack_require__(12);
+const class_transformer_1 = __webpack_require__(18);
 class JobDto {
     constructor() {
         this.is_urgent = false;
@@ -1625,34 +1630,6 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], ActionUserDto.prototype, "user_id", void 0);
-
-
-/***/ }),
-/* 17 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("class-validator");
-
-/***/ }),
-/* 18 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PaginationJobDto = void 0;
-const class_transformer_1 = __webpack_require__(19);
-const class_validator_1 = __webpack_require__(17);
 class PaginationJobDto {
 }
 exports.PaginationJobDto = PaginationJobDto;
@@ -1700,14 +1677,613 @@ __decorate([
 
 
 /***/ }),
-/* 19 */
+/* 17 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("class-validator");
+
+/***/ }),
+/* 18 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("class-transformer");
 
 /***/ }),
+/* 19 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CustomerModule = void 0;
+const common_1 = __webpack_require__(6);
+const customer_controller_1 = __webpack_require__(20);
+const customer_service_1 = __webpack_require__(21);
+const prisma_service_1 = __webpack_require__(10);
+let CustomerModule = class CustomerModule {
+};
+exports.CustomerModule = CustomerModule;
+exports.CustomerModule = CustomerModule = __decorate([
+    (0, common_1.Module)({
+        controllers: [
+            customer_controller_1.CustomerController
+        ],
+        providers: [
+            customer_service_1.CustomerService,
+            prisma_service_1.PrismaService
+        ]
+    })
+], CustomerModule);
+
+
+/***/ }),
 /* 20 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c, _d, _e;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CustomerController = void 0;
+const common_1 = __webpack_require__(6);
+const customer_service_1 = __webpack_require__(21);
+const globalClass_1 = __webpack_require__(14);
+const customer_dto_1 = __webpack_require__(22);
+const globalEnum_1 = __webpack_require__(15);
+let CustomerController = class CustomerController {
+    constructor(customerService) {
+        this.customerService = customerService;
+    }
+    async getCustomer(paginationDto) {
+        try {
+            const data = await this.customerService.getCustomers(paginationDto);
+            return new globalClass_1.ResponseData(data, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async getCustomerById(id) {
+        try {
+            const data = await this.customerService.getDetailCustomerById(id);
+            return new globalClass_1.ResponseData(data, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async forceLogoutUser(id) {
+        try {
+            const isLogout = await this.customerService.forceLogoutUser(id);
+            return new globalClass_1.ResponseData(isLogout, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+};
+exports.CustomerController = CustomerController;
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_b = typeof customer_dto_1.PaginationCustomerDto !== "undefined" && customer_dto_1.PaginationCustomerDto) === "function" ? _b : Object]),
+    __metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+], CustomerController.prototype, "getCustomer", null);
+__decorate([
+    (0, common_1.Get)('/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
+], CustomerController.prototype, "getCustomerById", null);
+__decorate([
+    (0, common_1.Put)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
+], CustomerController.prototype, "forceLogoutUser", null);
+exports.CustomerController = CustomerController = __decorate([
+    (0, common_1.Controller)('/api/customer'),
+    __metadata("design:paramtypes", [typeof (_a = typeof customer_service_1.CustomerService !== "undefined" && customer_service_1.CustomerService) === "function" ? _a : Object])
+], CustomerController);
+
+
+/***/ }),
+/* 21 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CustomerService = void 0;
+const common_1 = __webpack_require__(6);
+const prisma_service_1 = __webpack_require__(10);
+let CustomerService = class CustomerService {
+    constructor(prisma) {
+        this.prisma = prisma;
+    }
+    async getCustomers(paginationDto) {
+        const { page = 1, limit = 9, username, email, mobile_number } = paginationDto;
+        const skip = (page - 1) * limit;
+        try {
+            const filterConditions = {
+                delete_time: null,
+            };
+            if (username) {
+                filterConditions.user_name = username;
+            }
+            if (email) {
+                filterConditions.email = email;
+            }
+            if (mobile_number) {
+                filterConditions.mobile_number = mobile_number;
+            }
+            const [customers, totalCount] = await Promise.all([
+                this.prisma.customer.findMany({
+                    where: filterConditions,
+                    select: {
+                        id: true,
+                        uuid: true,
+                        email: true,
+                        user_name: true,
+                        mobile_number: true,
+                        avatar: true,
+                        name: true,
+                        status: true,
+                    },
+                    skip: Number(skip),
+                    take: Number(limit),
+                }),
+                this.prisma.job.count({
+                    where: {
+                        delete_time: null,
+                    },
+                }),
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { customers, totalPages, page };
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async getDetailCustomerById(id) {
+        try {
+            const customer = this.prisma.customer.findUnique({
+                where: {
+                    delete_time: null,
+                    id,
+                },
+                select: {
+                    id: true,
+                    uuid: true,
+                    email: true,
+                    user_name: true,
+                    first_name: true,
+                    last_name: true,
+                    mobile_number: true,
+                    home_number: true,
+                    status: true,
+                    activate_time: true,
+                    avatar: true,
+                    star: true,
+                    star_count: true,
+                    reward_point: true,
+                    name: true,
+                    address: {
+                        select: {
+                            default: true,
+                            blk_no: true,
+                            unit_no: true,
+                            building: true,
+                            street: true,
+                            country: true,
+                            post_code: true,
+                            home: true
+                        }
+                    },
+                    job: {
+                        where: {
+                            delete_time: null
+                        },
+                        select: {
+                            code: true,
+                            service_id: true,
+                            status: true,
+                            is_urgent: true,
+                            insert_time: true,
+                            can_cancel: true,
+                            complete_time: true
+                        }
+                    }
+                }
+            });
+            return customer;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async forceLogoutUser(id) {
+        try {
+            const data = await this.prisma.customer.update({
+                where: { id },
+                data: {
+                    device_token: null,
+                    googleToken: null
+                }
+            });
+            if (data) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+};
+exports.CustomerService = CustomerService;
+exports.CustomerService = CustomerService = __decorate([
+    (0, common_1.Injectable)({}),
+    __metadata("design:paramtypes", [typeof (_a = typeof prisma_service_1.PrismaService !== "undefined" && prisma_service_1.PrismaService) === "function" ? _a : Object])
+], CustomerService);
+
+
+/***/ }),
+/* 22 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PaginationCustomerDto = exports.CustomerDto = void 0;
+const class_transformer_1 = __webpack_require__(18);
+const class_validator_1 = __webpack_require__(17);
+class CustomerDto {
+}
+exports.CustomerDto = CustomerDto;
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Number)
+], CustomerDto.prototype, "id", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CustomerDto.prototype, "uuid", void 0);
+__decorate([
+    (0, class_validator_1.IsEmail)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CustomerDto.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CustomerDto.prototype, "user_name", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CustomerDto.prototype, "mobile_number", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CustomerDto.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CustomerDto.prototype, "avatar", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CustomerDto.prototype, "name", void 0);
+class PaginationCustomerDto {
+}
+exports.PaginationCustomerDto = PaginationCustomerDto;
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationCustomerDto.prototype, "page", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationCustomerDto.prototype, "limit", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], PaginationCustomerDto.prototype, "username", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], PaginationCustomerDto.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], PaginationCustomerDto.prototype, "mobile_number", void 0);
+
+
+/***/ }),
+/* 23 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FixelistModule = void 0;
+const common_1 = __webpack_require__(6);
+const fixelist_controller_1 = __webpack_require__(24);
+const fixelist_service_1 = __webpack_require__(25);
+const prisma_service_1 = __webpack_require__(10);
+let FixelistModule = class FixelistModule {
+};
+exports.FixelistModule = FixelistModule;
+exports.FixelistModule = FixelistModule = __decorate([
+    (0, common_1.Module)({
+        controllers: [
+            fixelist_controller_1.FixelistController
+        ],
+        providers: [
+            fixelist_service_1.FixelistService,
+            prisma_service_1.PrismaService
+        ]
+    })
+], FixelistModule);
+
+
+/***/ }),
+/* 24 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FixelistController = void 0;
+const common_1 = __webpack_require__(6);
+const fixelist_service_1 = __webpack_require__(25);
+const fixelist_dto_1 = __webpack_require__(26);
+const globalClass_1 = __webpack_require__(14);
+const globalEnum_1 = __webpack_require__(15);
+let FixelistController = class FixelistController {
+    constructor(fixelistService) {
+        this.fixelistService = fixelistService;
+    }
+    async getFixelist(paginationDto) {
+        try {
+            const data = await this.fixelistService.getFixelist(paginationDto);
+            return new globalClass_1.ResponseData(data, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+};
+exports.FixelistController = FixelistController;
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_b = typeof fixelist_dto_1.PaginationFixelistDto !== "undefined" && fixelist_dto_1.PaginationFixelistDto) === "function" ? _b : Object]),
+    __metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+], FixelistController.prototype, "getFixelist", null);
+exports.FixelistController = FixelistController = __decorate([
+    (0, common_1.Controller)('/api/fixelist'),
+    __metadata("design:paramtypes", [typeof (_a = typeof fixelist_service_1.FixelistService !== "undefined" && fixelist_service_1.FixelistService) === "function" ? _a : Object])
+], FixelistController);
+
+
+/***/ }),
+/* 25 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FixelistService = void 0;
+const common_1 = __webpack_require__(6);
+const prisma_service_1 = __webpack_require__(10);
+let FixelistService = class FixelistService {
+    constructor(prisma) {
+        this.prisma = prisma;
+    }
+    async getFixelist(paginationDto) {
+        const { page = 1, limit = 9, email, username, service } = paginationDto;
+        const skip = (page - 1) * limit;
+        console.log(service);
+        try {
+            const filterConditions = {
+                delete_time: null,
+            };
+            if (username) {
+                filterConditions.user_name = username;
+            }
+            if (email) {
+                filterConditions.email = email;
+            }
+            if (service) {
+                filterConditions.services = {
+                    hasSome: [service]
+                };
+            }
+            console.log(filterConditions);
+            const [fixelist, totalCount] = await Promise.all([
+                this.prisma.handyman.findMany({
+                    where: filterConditions,
+                    select: {
+                        id: true,
+                        uuid: true,
+                        email: true,
+                        user_name: true,
+                        status: true,
+                        mobile_number: true,
+                        position: true,
+                        avatar: true,
+                        name: true,
+                        services: true,
+                    },
+                    skip: Number(skip),
+                    take: Number(limit),
+                }),
+                this.prisma.job.count({
+                    where: {
+                        delete_time: null,
+                    },
+                }),
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { fixelist, totalPages, page };
+        }
+        catch (error) {
+            console.log(error);
+            throw error;
+        }
+    }
+};
+exports.FixelistService = FixelistService;
+exports.FixelistService = FixelistService = __decorate([
+    (0, common_1.Injectable)({}),
+    __metadata("design:paramtypes", [typeof (_a = typeof prisma_service_1.PrismaService !== "undefined" && prisma_service_1.PrismaService) === "function" ? _a : Object])
+], FixelistService);
+
+
+/***/ }),
+/* 26 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PaginationFixelistDto = void 0;
+const class_transformer_1 = __webpack_require__(18);
+const class_validator_1 = __webpack_require__(17);
+class PaginationFixelistDto {
+}
+exports.PaginationFixelistDto = PaginationFixelistDto;
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationFixelistDto.prototype, "page", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationFixelistDto.prototype, "limit", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], PaginationFixelistDto.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], PaginationFixelistDto.prototype, "username", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationFixelistDto.prototype, "service", void 0);
+
+
+/***/ }),
+/* 27 */
 /***/ ((module) => {
 
 "use strict";
@@ -1775,7 +2351,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("695a80b6ee13ea2cf059")
+/******/ 		__webpack_require__.h = () => ("fff65cb8205709c4b533")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */

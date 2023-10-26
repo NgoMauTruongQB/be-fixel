@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { JobDtailGeneralInformationDto, JobViewDto, ActionUserDto, JobDto } from 'src/admin/dto/job.dto'
 import { convertToTimeZone } from 'src/shared/timezone.utility'
 import { generateSixDigitCode } from 'src/shared/uniqueDigitsCode'
-import { PaginationJobDto } from 'src/admin/dto/paginationJob.dto'
+import { PaginationJobDto } from 'src/admin/dto/job.dto'
 
 @Injectable({})
 export class JobService {

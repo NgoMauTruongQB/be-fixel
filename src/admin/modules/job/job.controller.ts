@@ -4,7 +4,7 @@ import { ResponseData } from 'src/admin/global/globalClass'
 import { job } from '@prisma/client'
 import { HttpMessage, HttpStatus } from 'src/admin/global/globalEnum'
 import { JobDtailGeneralInformationDto, JobViewDto, ActionUserDto, JobDto } from 'src/admin/dto/job.dto'
-import { PaginationJobDto } from 'src/admin/dto/paginationJob.dto'
+import { PaginationJobDto } from 'src/admin/dto/job.dto'
 
 
 @Controller('/api/job')
@@ -30,9 +30,9 @@ export class JobController {
     ): Promise<ResponseData<{ any: any }>> {
         try {
             const data = await this.jobService.getAllInformationJobById(id)
-            return new ResponseData<{ any: any, totalPages: number, page: number }>(data, HttpStatus.ERROR, HttpMessage.ERROR)
+            return new ResponseData<{ any: any}>(data, HttpStatus.ERROR, HttpMessage.ERROR)
         } catch (error) {
-            return new ResponseData<{ any: any, totalPages: number, page: number }>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+            return new ResponseData<{ any: any}>(null, HttpStatus.ERROR, HttpMessage.ERROR)
         }
     }
 
