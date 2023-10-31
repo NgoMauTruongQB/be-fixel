@@ -32,8 +32,6 @@ export class FixelistService {
                 }
             }
 
-            console.log(filterConditions)
-
             const [fixelist, totalCount] = await Promise.all([
                 this.prisma.handyman.findMany({
                     where: filterConditions,

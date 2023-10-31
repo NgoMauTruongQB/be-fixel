@@ -1,6 +1,6 @@
 import { ParseBoolPipe } from '@nestjs/common'
 import { Transform, TransformFnParams } from 'class-transformer'
-import { IsEmail, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator'
+import { IsBoolean, IsEmail, IsInt, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsString, Min } from 'class-validator'
 
 export class CustomerDto {
 
@@ -57,4 +57,97 @@ export class PaginationCustomerDto {
 
     @IsOptional()
     mobile_number: string
+}
+
+export class ActionUserDto {
+    @IsNotEmpty()
+    user_id? : number
+}
+
+export class AddressDto {
+    @IsOptional()
+    @IsBoolean()
+    is_default?: boolean
+
+    @IsNotEmpty()
+    blk_no?: string
+
+    @IsOptional()
+    @IsNumberString()
+    floor?: string
+
+    @IsOptional()
+    @IsNumberString()
+    unit_no?: string
+
+    @IsOptional()
+    @IsString()
+    building?: string
+
+    @IsOptional()
+    @IsString()
+    street?: string
+
+    @IsNotEmpty()
+    @IsString()
+    country?: string
+
+    @IsOptional()
+    @IsString()
+    post_code?: string
+
+    @IsNotEmpty()
+    @IsBoolean()
+    is_home?: boolean
+
+    @IsNotEmpty()
+    @IsNumber()
+    update_by?: number
+
+}
+
+export class PaginationJobDto {
+    @IsOptional()
+    @IsInt()
+    @Min(1)
+    @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
+    page: number
+
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
+    limit: number
+
+    @IsOptional()
+    @IsNumber()
+    @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
+    status: number
+
+    @IsOptional()
+    @IsNumber()
+    @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
+    service_id: number
+}
+
+export class PaginationPaymentDto {
+    @IsOptional()
+    @IsInt()
+    @Min(1)
+    @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
+    page: number
+
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
+    limit: number
+
+    @IsOptional()
+    @IsString()
+    job_code: string
+
+    @IsOptional()
+    @IsBoolean()
+    status: boolean
 }

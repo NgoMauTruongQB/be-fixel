@@ -1,47 +1,56 @@
-import { Injectable } from '@nestjs/common'
-import { job } from '@prisma/client'
-import { PrismaService } from '../prisma/prisma.service'
-import { JobDtailGeneralInformationDto, JobViewDto, ActionUserDto, JobDto } from 'src/admin/dto/job.dto'
-import { convertToTimeZone } from 'src/shared/timezone.utility'
-import { generateSixDigitCode } from 'src/shared/uniqueDigitsCode'
-import { PaginationJobDto } from 'src/admin/dto/job.dto'
+"use strict";
+exports.id = 0;
+exports.ids = null;
+exports.modules = {
 
-@Injectable({})
-export class JobService {
+/***/ 9:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
-    constructor(private prisma: PrismaService) {}
 
-    async getJobs(paginationDto: PaginationJobDto): Promise<{ jobs: JobViewDto[], totalPages: number, page: number }> {
-        const { page = 1, limit = 9, service_id, status, username, id, priority } = paginationDto
-        const skip = (page - 1) * limit
-
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.JobService = void 0;
+const common_1 = __webpack_require__(6);
+const prisma_service_1 = __webpack_require__(10);
+const timezone_utility_1 = __webpack_require__(12);
+const uniqueDigitsCode_1 = __webpack_require__(13);
+let JobService = class JobService {
+    constructor(prisma) {
+        this.prisma = prisma;
+    }
+    async getJobs(paginationDto) {
+        const { page = 1, limit = 9, service_id, status, username, id, priority } = paginationDto;
+        const skip = (page - 1) * limit;
         try {
-            const filterConditions: Record<string, any> = {
+            const filterConditions = {
                 delete_time: null,
-            }
-        
+            };
             if (service_id) {
-                filterConditions.service_id = Number(service_id)
+                filterConditions.service_id = Number(service_id);
             }
-          
             if (status) {
-                filterConditions.status = Number(status)
+                filterConditions.status = Number(status);
             }
-
             if (priority) {
-                filterConditions.is_urgent = Boolean(priority)
+                filterConditions.is_urgent = Boolean(priority);
             }
-
-            if(id) {
-                filterConditions.code = String(id)
+            if (id) {
+                filterConditions.code = String(id);
             }
-
-            if(username) {
+            if (username) {
                 filterConditions.customer = {
                     user_name: username,
-                }
+                };
             }
-  
             const [jobs, totalCount] = await Promise.all([
                 this.prisma.job.findMany({
                     where: filterConditions,
@@ -81,21 +90,17 @@ export class JobService {
                         ...filterConditions
                     },
                 }),
-            ])
-
-            console.log(totalCount)
-            console.log(limit)
-
-            const totalPages = Math.ceil(totalCount / limit)
-
-            return { jobs, totalPages, page }
-        } catch (error) {
-            throw error
+            ]);
+            console.log(totalCount);
+            console.log(limit);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { jobs, totalPages, page };
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async getAllInformationJobById(id: number): Promise<any> {
-
+    async getAllInformationJobById(id) {
         try {
             const job = this.prisma.job.findUnique({
                 where: {
@@ -195,17 +200,17 @@ export class JobService {
                             content_for_handyman: true,
                             active_for_customer: true,
                             active_for_handyman: true,
-                            handyman: { 
-                                select: { 
-                                    id: true, 
-                                    user_name: true 
-                                } 
+                            handyman: {
+                                select: {
+                                    id: true,
+                                    user_name: true
+                                }
                             },
-                            customer: { 
-                                select: { 
-                                    id: true, 
-                                    user_name: true 
-                                } 
+                            customer: {
+                                select: {
+                                    id: true,
+                                    user_name: true
+                                }
                             }
                         }
                     },
@@ -221,8 +226,6 @@ export class JobService {
                             name: true,
                         },
                     },
-
-                    // Data for Milestone
                     reschedule: true,
                     new_schedule_time: true,
                     progress_time: true,
@@ -272,8 +275,6 @@ export class JobService {
                             cancelTime: true
                         }
                     },
-
-                    // Date for history action
                     history_action: {
                         where: {
                             delete_time: null
@@ -281,7 +282,7 @@ export class JobService {
                         select: {
                             id: true,
                             content: true,
-                            action_time:  true,
+                            action_time: true,
                             schedule_time: true,
                             status: true,
                             note: true,
@@ -304,18 +305,16 @@ export class JobService {
                         }
                     }
                 }
-            })
-
-            return job
-        } catch (error) {
-            throw error
+            });
+            return job;
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async getPendingJobs(paginationDto: PaginationJobDto): Promise<{ jobs: JobViewDto[], totalPages: number, page: number }> {
-        const { page = 1, limit = 9 } = paginationDto
-        const skip = (page - 1) * limit
-
+    async getPendingJobs(paginationDto) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
         try {
             const [jobs, totalCount] = await Promise.all([
                 this.prisma.job.findMany({
@@ -359,22 +358,18 @@ export class JobService {
                         status: { not: 5 }
                     },
                 }),
-            ])
-
-            const totalPages = Math.ceil(totalCount / limit)
-
-            return { jobs, totalPages, page }
-        } catch (error) {
-            throw error
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { jobs, totalPages, page };
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async getOffersByJob(paginationDto: PaginationJobDto, id: number): Promise<any> {
-        const { page = 1, limit = 9 } = paginationDto
-        const skip = (page - 1) * limit
-
+    async getOffersByJob(paginationDto, id) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
         try {
-
             const [offers, totalCount] = await Promise.all([
                 this.prisma.offer.findMany({
                     where: {
@@ -413,20 +408,17 @@ export class JobService {
                         job_id: id
                     },
                 }),
-            ])
-
-            const totalPages = Math.ceil(totalCount / limit)
-
-
-            return { offers, totalPages, page }
-        } catch (error) {
-            throw error
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { offers, totalPages, page };
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async getPaymentsByJob(paginationDto: PaginationJobDto, id: number): Promise<any> {
-        const { page = 1, limit = 9 } = paginationDto
-        const skip = (page - 1) * limit
+    async getPaymentsByJob(paginationDto, id) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
         try {
             const [payments, totalCount] = await Promise.all([
                 this.prisma.payment.findMany({
@@ -450,11 +442,11 @@ export class JobService {
                         charge_id: true,
                         ref_charge_id: true,
                         customer: {
-                            select: { 
-                                id: true, 
-                                name: true, 
-                                user_name: true, 
-                                mobile_number: true 
+                            select: {
+                                id: true,
+                                name: true,
+                                user_name: true,
+                                mobile_number: true
                             }
                         },
                         handyman: {
@@ -475,22 +467,19 @@ export class JobService {
                         delete_time: null
                     }
                 })
-            ])
-
-            const totalPages = Math.ceil(totalCount / limit)
-
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
             return {
                 payments,
                 totalPages,
                 page
-            }
-
-        } catch (error) {
-            throw error
+            };
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async getDetailGeneralInformation(id: number): Promise<JobDtailGeneralInformationDto> {
+    async getDetailGeneralInformation(id) {
         try {
             const job = await this.prisma.job.findUnique({
                 where: {
@@ -541,25 +530,16 @@ export class JobService {
                         }
                     }
                 }
-            })
-
-            return job
-        } catch (error) {
-            throw error
+            });
+            return job;
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async updateGeneraInformation(id: number, jobGenerateInformationDto: JobDtailGeneralInformationDto): Promise<job> {
+    async updateGeneraInformation(id, jobGenerateInformationDto) {
         try {
-            const {
-                is_urgent,
-                insert_time,
-                schedule_time,
-                complete_time,
-                paid_amount,
-                gst_amount,
-            } = jobGenerateInformationDto
-
+            const { is_urgent, insert_time, schedule_time, complete_time, paid_amount, gst_amount, } = jobGenerateInformationDto;
             const updatedJob = await this.prisma.job.update({
                 where: {
                     id: Number(id)
@@ -572,29 +552,29 @@ export class JobService {
                     paid_amount,
                     gst_amount
                 }
-            })
-            return updatedJob
-        } catch (error) {
-            throw error
+            });
+            return updatedJob;
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async softDeleteJob(id: number, actionUser: ActionUserDto): Promise<boolean> {
+    async softDeleteJob(id, actionUser) {
         try {
             const data = await this.prisma.job.update({
                 where: { id },
                 data: {
-                    delete_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
+                    delete_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
                     delete_by: actionUser.user_id
                 }
-            })
-            return true
-        } catch (error) {
-            throw error
+            });
+            return true;
+        }
+        catch (error) {
+            throw error;
         }
     }
-    
-    async restoreJob(id: number, actionUser: ActionUserDto): Promise<boolean> {
+    async restoreJob(id, actionUser) {
         try {
             await this.prisma.job.update({
                 where: { id },
@@ -602,64 +582,78 @@ export class JobService {
                     delete_time: null,
                     delete_by: null,
                     update_by: actionUser.user_id,
-                    update_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET)
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET)
                 },
-            })
-            return true
-        } catch (error) {
-            throw error
+            });
+            return true;
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async createJob(jobDto: JobDto): Promise<job> {
+    async createJob(jobDto) {
         try {
-            const { customer_id, service_id, address_id, ...restJobDto } = jobDto
-
+            const { customer_id, service_id, address_id, ...restJobDto } = jobDto;
             const service = await this.prisma.service.findUnique({
                 where: { id: service_id },
                 select: { code: true }
-            })
-
+            });
             if (!service) {
-                throw new Error('Service not found.')
+                throw new Error('Service not found.');
             }
-
-            const sixDigitCode = generateSixDigitCode()
-            const code = `${service.code}#${sixDigitCode}`
-
-            const data: any = {
+            const sixDigitCode = (0, uniqueDigitsCode_1.generateSixDigitCode)();
+            const code = `${service.code}#${sixDigitCode}`;
+            const data = {
                 ...restJobDto,
                 code,
-                customer: { connect: { id: customer_id }},
-                service: { connect: { id: service_id }},
-                address: { connect: { id: address_id }},
-            }
-
+                customer: { connect: { id: customer_id } },
+                service: { connect: { id: service_id } },
+                address: { connect: { id: address_id } },
+            };
             const job = await this.prisma.job.create({
                 data,
-            })
-
-            return job
-        } catch (error) {
-            throw error
+            });
+            return job;
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async cancelJob(id: number, actionUser: ActionUserDto): Promise<boolean> {
+    async cancelJob(id, actionUser) {
         try {
             await this.prisma.job.updateMany({
                 where: { id },
                 data: {
-                    cancel_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
+                    cancel_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
                     cancel_by: actionUser.user_id,
                     update_by: actionUser.user_id,
-                    update_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
                     status: 5
                 }
-            })
-            return true
-        } catch (error) {
-            throw error
+            });
+            return true;
+        }
+        catch (error) {
+            throw error;
         }
     }
-}
+};
+exports.JobService = JobService;
+exports.JobService = JobService = __decorate([
+    (0, common_1.Injectable)({}),
+    __metadata("design:paramtypes", [typeof (_a = typeof prisma_service_1.PrismaService !== "undefined" && prisma_service_1.PrismaService) === "function" ? _a : Object])
+], JobService);
+
+
+/***/ })
+
+};
+exports.runtime =
+/******/ function(__webpack_require__) { // webpackRuntimeModules
+/******/ /* webpack/runtime/getFullHash */
+/******/ (() => {
+/******/ 	__webpack_require__.h = () => ("b7b718df0aca314a742c")
+/******/ })();
+/******/ 
+/******/ }
+;

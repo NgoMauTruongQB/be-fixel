@@ -600,10 +600,12 @@ let JobService = class JobService {
                 }),
                 this.prisma.job.count({
                     where: {
-                        delete_time: null,
+                        ...filterConditions
                     },
                 }),
             ]);
+            console.log(totalCount);
+            console.log(limit);
             const totalPages = Math.ceil(totalCount / limit);
             return { jobs, totalPages, page };
         }
@@ -866,6 +868,7 @@ let JobService = class JobService {
                 this.prisma.job.count({
                     where: {
                         delete_time: null,
+                        status: { not: 5 }
                     },
                 }),
             ]);
@@ -1742,7 +1745,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CustomerController = void 0;
 const common_1 = __webpack_require__(6);
@@ -1781,6 +1784,51 @@ let CustomerController = class CustomerController {
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
         }
     }
+    async softDeleteCustomer(id, actionUser) {
+        try {
+            const isDelete = await this.customerService.softDeleteCustomer(id, actionUser);
+            return new globalClass_1.ResponseData(isDelete, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async restoreCustomer(id, actionUser) {
+        try {
+            const isRestore = await this.customerService.restoreCustomer(id, actionUser);
+            return new globalClass_1.ResponseData(isRestore, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async changeAddress(id, addressDto) {
+        try {
+            const address = await this.customerService.changeAddress(id, addressDto);
+            return new globalClass_1.ResponseData(address, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async getCustomerJobs(id, paginationDto) {
+        try {
+            const job = await this.customerService.getCustomerBooking(id, paginationDto);
+            return new globalClass_1.ResponseData(job, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async getCustomerPayment(id, paginationDto) {
+        try {
+            const payment = await this.customerService.getCustomerPayment(id, paginationDto);
+            return new globalClass_1.ResponseData(payment, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
 };
 exports.CustomerController = CustomerController;
 __decorate([
@@ -1804,6 +1852,46 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
 ], CustomerController.prototype, "forceLogoutUser", null);
+__decorate([
+    (0, common_1.Put)('soft-delete/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_f = typeof customer_dto_1.ActionUserDto !== "undefined" && customer_dto_1.ActionUserDto) === "function" ? _f : Object]),
+    __metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
+], CustomerController.prototype, "softDeleteCustomer", null);
+__decorate([
+    (0, common_1.Put)('restore/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_h = typeof customer_dto_1.ActionUserDto !== "undefined" && customer_dto_1.ActionUserDto) === "function" ? _h : Object]),
+    __metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
+], CustomerController.prototype, "restoreCustomer", null);
+__decorate([
+    (0, common_1.Put)('change-address/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_k = typeof customer_dto_1.AddressDto !== "undefined" && customer_dto_1.AddressDto) === "function" ? _k : Object]),
+    __metadata("design:returntype", typeof (_l = typeof Promise !== "undefined" && Promise) === "function" ? _l : Object)
+], CustomerController.prototype, "changeAddress", null);
+__decorate([
+    (0, common_1.Get)('/:id/booking'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_m = typeof customer_dto_1.PaginationJobDto !== "undefined" && customer_dto_1.PaginationJobDto) === "function" ? _m : Object]),
+    __metadata("design:returntype", Promise)
+], CustomerController.prototype, "getCustomerJobs", null);
+__decorate([
+    (0, common_1.Get)('/:id/payment'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_o = typeof customer_dto_1.PaginationPaymentDto !== "undefined" && customer_dto_1.PaginationPaymentDto) === "function" ? _o : Object]),
+    __metadata("design:returntype", Promise)
+], CustomerController.prototype, "getCustomerPayment", null);
 exports.CustomerController = CustomerController = __decorate([
     (0, common_1.Controller)('/api/customer'),
     __metadata("design:paramtypes", [typeof (_a = typeof customer_service_1.CustomerService !== "undefined" && customer_service_1.CustomerService) === "function" ? _a : Object])
@@ -1830,6 +1918,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CustomerService = void 0;
 const common_1 = __webpack_require__(6);
 const prisma_service_1 = __webpack_require__(10);
+const timezone_utility_1 = __webpack_require__(12);
 let CustomerService = class CustomerService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -1904,6 +1993,7 @@ let CustomerService = class CustomerService {
                     name: true,
                     address: {
                         select: {
+                            id: true,
                             default: true,
                             blk_no: true,
                             unit_no: true,
@@ -1919,6 +2009,7 @@ let CustomerService = class CustomerService {
                             delete_time: null
                         },
                         select: {
+                            id: true,
                             code: true,
                             service_id: true,
                             status: true,
@@ -1926,6 +2017,57 @@ let CustomerService = class CustomerService {
                             insert_time: true,
                             can_cancel: true,
                             complete_time: true
+                        }
+                    },
+                    extra: {
+                        where: {
+                            delete_time: null
+                        },
+                        select: {
+                            job: {
+                                where: { delete_time: null },
+                                select: { code: true, service_id: true }
+                            },
+                            type: true,
+                            amount: true,
+                            gst: true,
+                            note: true,
+                            status: true,
+                        }
+                    },
+                    feedback: {
+                        select: {
+                            job_id: true,
+                            job_code: true,
+                            insert_time: true,
+                        }
+                    },
+                    history_action: {
+                        where: { delete_time: null },
+                        select: {
+                            job_id: true,
+                            job_code: true,
+                            handyman: {
+                                select: { name: true, id: true, avatar: true }
+                            },
+                            status: true,
+                            content: true,
+                            note: true,
+                        },
+                    },
+                    milestone: {
+                        where: { delete_time: null },
+                        select: {
+                            job_id: true,
+                            job_code: true,
+                            handyman: {
+                                select: { name: true, id: true, avatar: true }
+                            },
+                            milestoneTime: true,
+                            text: true,
+                            type: true,
+                            status: true,
+                            isCompleted: true,
                         }
                     }
                 }
@@ -1956,6 +2098,185 @@ let CustomerService = class CustomerService {
             throw error;
         }
     }
+    async softDeleteCustomer(id, actionUser) {
+        try {
+            const data = await this.prisma.customer.update({
+                where: { id },
+                data: {
+                    delete_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
+                    delete_by: actionUser.user_id
+                }
+            });
+            if (!data) {
+                return false;
+            }
+            return true;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async restoreCustomer(id, actionUser) {
+        try {
+            const data = await this.prisma.customer.update({
+                where: { id },
+                data: {
+                    delete_time: null,
+                    delete_by: null,
+                    update_by: actionUser.user_id,
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET)
+                },
+            });
+            if (!data) {
+                return false;
+            }
+            return true;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async changeAddress(id, addressDto) {
+        try {
+            const data = await this.prisma.address.update({
+                where: { id },
+                data: {
+                    default: addressDto.is_default,
+                    blk_no: addressDto.blk_no,
+                    floor: addressDto.floor,
+                    unit_no: addressDto.floor,
+                    building: addressDto.building,
+                    street: addressDto.street,
+                    country: addressDto.country,
+                    post_code: addressDto.post_code,
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
+                    home: addressDto.is_home,
+                    update_by: addressDto.update_by,
+                }
+            });
+            if (!data) {
+                return false;
+            }
+            return true;
+        }
+        catch (error) {
+            console.log(error);
+            throw error;
+        }
+    }
+    async getCustomerBooking(id, paginationDto) {
+        const { page = 1, limit = 9, service_id, status } = paginationDto;
+        const skip = (page - 1) * limit;
+        try {
+            const filterConditions = {
+                delete_time: null,
+                customer_id: id
+            };
+            if (service_id) {
+                filterConditions.service_id = service_id;
+            }
+            if (status) {
+                filterConditions.status = status;
+            }
+            const [jobs, totalCount] = await Promise.all([
+                this.prisma.job.findMany({
+                    where: filterConditions,
+                    select: {
+                        id: true,
+                        code: true,
+                        status: true,
+                        service_id: true,
+                        insert_time: true,
+                        complete_time: true,
+                        schedule_time: true,
+                        cancel_time: true,
+                        is_urgent: true,
+                        handyman_job_handyman_idTohandyman: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
+                        },
+                        handyman_job_worker_idTohandyman: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
+                        },
+                    },
+                    skip: Number(skip),
+                    take: Number(limit),
+                }),
+                this.prisma.job.count({
+                    where: {
+                        delete_time: null,
+                    },
+                }),
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { jobs, totalPages, page };
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async getCustomerPayment(id, paginationDto) {
+        const { page = 1, limit = 9, job_code, status } = paginationDto;
+        const skip = (page - 1) * limit;
+        try {
+            const filterConditions = {
+                delete_time: null,
+                customer_id: id
+            };
+            if (job_code) {
+                filterConditions.job_code = job_code;
+            }
+            if (status) {
+                filterConditions.status = status;
+            }
+            const [payments, totalCount] = await Promise.all([
+                this.prisma.payment.findMany({
+                    where: filterConditions,
+                    select: {
+                        id: true,
+                        type: true,
+                        job_code: true,
+                        amount: true,
+                        net: true,
+                        fee: true,
+                        fee_vat: true,
+                        interest: true,
+                        interest_vat: true,
+                        currency: true,
+                        paid: true,
+                        status: true,
+                        charge_id: true,
+                        ref_charge_id: true,
+                        handyman: {
+                            select: {
+                                id: true,
+                                name: true,
+                                user_name: true,
+                                mobile_number: true,
+                            }
+                        }
+                    },
+                    skip: Number(skip),
+                    take: Number(limit),
+                }),
+                this.prisma.job.count({
+                    where: {
+                        delete_time: null,
+                    },
+                }),
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { payments, totalPages, page };
+        }
+        catch (error) {
+            throw error;
+        }
+    }
 };
 exports.CustomerService = CustomerService;
 exports.CustomerService = CustomerService = __decorate([
@@ -1980,7 +2301,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PaginationCustomerDto = exports.CustomerDto = void 0;
+exports.PaginationPaymentDto = exports.PaginationJobDto = exports.AddressDto = exports.ActionUserDto = exports.PaginationCustomerDto = exports.CustomerDto = void 0;
 const class_transformer_1 = __webpack_require__(18);
 const class_validator_1 = __webpack_require__(17);
 class CustomerDto {
@@ -2054,6 +2375,121 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], PaginationCustomerDto.prototype, "mobile_number", void 0);
+class ActionUserDto {
+}
+exports.ActionUserDto = ActionUserDto;
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Number)
+], ActionUserDto.prototype, "user_id", void 0);
+class AddressDto {
+}
+exports.AddressDto = AddressDto;
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], AddressDto.prototype, "is_default", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], AddressDto.prototype, "blk_no", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumberString)(),
+    __metadata("design:type", String)
+], AddressDto.prototype, "floor", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumberString)(),
+    __metadata("design:type", String)
+], AddressDto.prototype, "unit_no", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], AddressDto.prototype, "building", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], AddressDto.prototype, "street", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], AddressDto.prototype, "country", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], AddressDto.prototype, "post_code", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], AddressDto.prototype, "is_home", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], AddressDto.prototype, "update_by", void 0);
+class PaginationJobDto {
+}
+exports.PaginationJobDto = PaginationJobDto;
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationJobDto.prototype, "page", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationJobDto.prototype, "limit", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationJobDto.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationJobDto.prototype, "service_id", void 0);
+class PaginationPaymentDto {
+}
+exports.PaginationPaymentDto = PaginationPaymentDto;
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationPaymentDto.prototype, "page", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationPaymentDto.prototype, "limit", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], PaginationPaymentDto.prototype, "job_code", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], PaginationPaymentDto.prototype, "status", void 0);
 
 
 /***/ }),
@@ -2187,7 +2623,6 @@ let FixelistService = class FixelistService {
                     hasSome: [service]
                 };
             }
-            console.log(filterConditions);
             const [fixelist, totalCount] = await Promise.all([
                 this.prisma.handyman.findMany({
                     where: filterConditions,
@@ -2351,7 +2786,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("fff65cb8205709c4b533")
+/******/ 		__webpack_require__.h = () => ("b7b718df0aca314a742c")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
