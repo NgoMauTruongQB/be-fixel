@@ -1775,6 +1775,15 @@ let CustomerController = class CustomerController {
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
         }
     }
+    async getCustomerJobs(id, paginationDto) {
+        try {
+            const job = await this.customerService.getJob(id, paginationDto);
+            return new globalClass_1.ResponseData(job, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
     async forceLogoutUser(id) {
         try {
             const isLogout = await this.customerService.forceLogoutUser(id);
@@ -1811,15 +1820,6 @@ let CustomerController = class CustomerController {
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
         }
     }
-    async getCustomerJobs(id, paginationDto) {
-        try {
-            const job = await this.customerService.getCustomerBooking(id, paginationDto);
-            return new globalClass_1.ResponseData(job, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
-        }
-        catch (error) {
-            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
-        }
-    }
     async getCustomerPayment(id, paginationDto) {
         try {
             const payment = await this.customerService.getCustomerPayment(id, paginationDto);
@@ -1846,44 +1846,44 @@ __decorate([
     __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
 ], CustomerController.prototype, "getGeneralInformationById", null);
 __decorate([
+    (0, common_1.Get)('/:id/job'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_e = typeof customer_dto_1.PaginationJobDto !== "undefined" && customer_dto_1.PaginationJobDto) === "function" ? _e : Object]),
+    __metadata("design:returntype", Promise)
+], CustomerController.prototype, "getCustomerJobs", null);
+__decorate([
     (0, common_1.Put)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
+    __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
 ], CustomerController.prototype, "forceLogoutUser", null);
 __decorate([
     (0, common_1.Put)('soft-delete/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_f = typeof customer_dto_1.ActionUserDto !== "undefined" && customer_dto_1.ActionUserDto) === "function" ? _f : Object]),
-    __metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
+    __metadata("design:paramtypes", [Number, typeof (_g = typeof customer_dto_1.ActionUserDto !== "undefined" && customer_dto_1.ActionUserDto) === "function" ? _g : Object]),
+    __metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
 ], CustomerController.prototype, "softDeleteCustomer", null);
 __decorate([
     (0, common_1.Put)('restore/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_h = typeof customer_dto_1.ActionUserDto !== "undefined" && customer_dto_1.ActionUserDto) === "function" ? _h : Object]),
-    __metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
+    __metadata("design:paramtypes", [Number, typeof (_j = typeof customer_dto_1.ActionUserDto !== "undefined" && customer_dto_1.ActionUserDto) === "function" ? _j : Object]),
+    __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
 ], CustomerController.prototype, "restoreCustomer", null);
 __decorate([
     (0, common_1.Put)('change-address/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_k = typeof customer_dto_1.AddressDto !== "undefined" && customer_dto_1.AddressDto) === "function" ? _k : Object]),
-    __metadata("design:returntype", typeof (_l = typeof Promise !== "undefined" && Promise) === "function" ? _l : Object)
+    __metadata("design:paramtypes", [Number, typeof (_l = typeof customer_dto_1.AddressDto !== "undefined" && customer_dto_1.AddressDto) === "function" ? _l : Object]),
+    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
 ], CustomerController.prototype, "changeAddress", null);
-__decorate([
-    (0, common_1.Get)('/:id/booking'),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Query)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_m = typeof customer_dto_1.PaginationJobDto !== "undefined" && customer_dto_1.PaginationJobDto) === "function" ? _m : Object]),
-    __metadata("design:returntype", Promise)
-], CustomerController.prototype, "getCustomerJobs", null);
 __decorate([
     (0, common_1.Get)('/:id/payment'),
     __param(0, (0, common_1.Param)('id')),
@@ -1986,7 +1986,6 @@ let CustomerService = class CustomerService {
                     avatar: true,
                     user_name: true,
                     email: true,
-                    review: true,
                     name: true,
                     mobile_number: true,
                     activate_time: true,
@@ -2007,6 +2006,65 @@ let CustomerService = class CustomerService {
             else {
                 return null;
             }
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async getJob(id, paginationDto) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
+        try {
+            const filterConditions = {
+                delete_time: null,
+                customer_id: id,
+            };
+            const jobs = await this.prisma.job.findMany({
+                where: filterConditions,
+                select: {
+                    id: true,
+                    code: true,
+                    status: true,
+                    handyman_job_handyman_idTohandyman: {
+                        select: {
+                            id: true,
+                            name: true,
+                        },
+                    },
+                    handyman_job_worker_idTohandyman: {
+                        select: {
+                            id: true,
+                            name: true,
+                        },
+                    },
+                    insert_time: true,
+                    schedule_time: true,
+                    complete_time: true,
+                    paid_amount: true,
+                    payment_status: true,
+                    payment: {
+                        select: {
+                            penalty: true,
+                            refunded_amount: true,
+                        },
+                    },
+                    update_time: true,
+                },
+                skip: Number(skip),
+                take: Number(limit),
+            });
+            const jobsWithTotals = jobs.map((job) => {
+                const totalRefundedAmount = job.payment.reduce((total, payment) => total + (payment.refunded_amount || 0), 0);
+                const totalPenalty = job.payment.reduce((total, payment) => total + (payment.penalty || 0), 0);
+                const { payment, ...jobWithoutPayment } = job;
+                return {
+                    ...jobWithoutPayment,
+                    totalRefundedAmount,
+                    totalPenalty,
+                };
+            });
+            const totalPages = Math.ceil(jobsWithTotals.length / limit);
+            return { jobs: jobsWithTotals, totalPages, page };
         }
         catch (error) {
             throw error;
@@ -2095,62 +2153,6 @@ let CustomerService = class CustomerService {
         }
         catch (error) {
             console.log(error);
-            throw error;
-        }
-    }
-    async getCustomerBooking(id, paginationDto) {
-        const { page = 1, limit = 9, service_id, status } = paginationDto;
-        const skip = (page - 1) * limit;
-        try {
-            const filterConditions = {
-                delete_time: null,
-                customer_id: id
-            };
-            if (service_id) {
-                filterConditions.service_id = service_id;
-            }
-            if (status) {
-                filterConditions.status = status;
-            }
-            const [jobs, totalCount] = await Promise.all([
-                this.prisma.job.findMany({
-                    where: filterConditions,
-                    select: {
-                        id: true,
-                        code: true,
-                        status: true,
-                        service_id: true,
-                        insert_time: true,
-                        complete_time: true,
-                        schedule_time: true,
-                        cancel_time: true,
-                        is_urgent: true,
-                        handyman_job_handyman_idTohandyman: {
-                            select: {
-                                id: true,
-                                name: true,
-                            },
-                        },
-                        handyman_job_worker_idTohandyman: {
-                            select: {
-                                id: true,
-                                name: true,
-                            },
-                        },
-                    },
-                    skip: Number(skip),
-                    take: Number(limit),
-                }),
-                this.prisma.job.count({
-                    where: {
-                        delete_time: null,
-                    },
-                }),
-            ]);
-            const totalPages = Math.ceil(totalCount / limit);
-            return { jobs, totalPages, page };
-        }
-        catch (error) {
             throw error;
         }
     }
@@ -2397,18 +2399,6 @@ __decorate([
     (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
     __metadata("design:type", Number)
 ], PaginationJobDto.prototype, "limit", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
-    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
-    __metadata("design:type", Number)
-], PaginationJobDto.prototype, "status", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
-    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
-    __metadata("design:type", Number)
-], PaginationJobDto.prototype, "service_id", void 0);
 class PaginationPaymentDto {
 }
 exports.PaginationPaymentDto = PaginationPaymentDto;
@@ -2732,7 +2722,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("0cb61cff8e357c3927bc")
+/******/ 		__webpack_require__.h = () => ("5419f69ae5168b0926af")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */

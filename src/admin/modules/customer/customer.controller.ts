@@ -35,6 +35,20 @@ export class CustomerController {
         }
     }
 
+    @Get('/:id/job')
+    async getCustomerJobs(
+        @Param('id') id: number,
+        @Query() paginationDto: PaginationJobDto
+    ) {
+        try {
+            const job = await this.customerService.getJob(id, paginationDto)
+
+            return new ResponseData<{any, totalPages: number, page: number}>(job, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            return new ResponseData<any>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+        }
+    }
+
     @Put(':id')
     async forceLogoutUser(
         @Param('id') id: number
@@ -86,19 +100,6 @@ export class CustomerController {
         }
     } 
 
-    @Get('/:id/booking')
-    async getCustomerJobs(
-        @Param('id') id: number,
-        @Query() paginationDto: PaginationJobDto
-    ) {
-        try {
-            const job = await this.customerService.getCustomerBooking(id, paginationDto)
-
-            return new ResponseData<{any, totalPages: number, page: number}>(job, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
-        } catch (error) {
-            return new ResponseData<any>(null, HttpStatus.ERROR, HttpMessage.ERROR)
-        }
-    }
 
     @Get('/:id/payment')
     async getCustomerPayment(

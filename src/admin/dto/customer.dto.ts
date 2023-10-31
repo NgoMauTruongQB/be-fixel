@@ -127,16 +127,6 @@ export class PaginationJobDto {
     @Min(1)
     @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
     limit: number
-
-    @IsOptional()
-    @IsNumber()
-    @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
-    status: number
-
-    @IsOptional()
-    @IsNumber()
-    @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
-    service_id: number
 }
 
 export class PaginationPaymentDto {
