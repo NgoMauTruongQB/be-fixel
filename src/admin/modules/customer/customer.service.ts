@@ -81,7 +81,14 @@ export class CustomerService {
                     avatar: true,
                     user_name: true,
                     email: true,
-                    review: true,
+                    review: {
+                        select: {
+                            job_code: true,
+                            job_id: true,
+                            star_for_handyman: true,
+                            content_for_handyman: true
+                        }
+                    },
                     name: true,
                     mobile_number: true,
                     activate_time: true,                  
