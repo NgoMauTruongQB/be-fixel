@@ -56,7 +56,16 @@ export class PaginationCustomerDto {
     email: string
 
     @IsOptional()
-    mobile_number: string
+    @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
+    status: number
+
+    @IsOptional()
+    @Transform(({ value }: TransformFnParams) => new Date(value), { toClassOnly: true })
+    startDate: Date
+
+    @IsOptional()
+    @Transform(({ value }: TransformFnParams) => new Date(value), { toClassOnly: true })
+    endDate: Date
 }
 
 export class ActionUserDto {

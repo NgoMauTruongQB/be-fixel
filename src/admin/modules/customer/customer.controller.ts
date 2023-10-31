@@ -24,11 +24,11 @@ export class CustomerController {
     }
 
     @Get('/:id')
-    async getCustomerById(
+    async getGeneralInformationById(
         @Param('id') id: number
     ): Promise<ResponseData<{any: any}>> {
         try {
-            const data = await this.customerService.getDetailCustomerById(id)
+            const data = await this.customerService.getGeneralInformation(id)
             return new ResponseData<{ any: any}>(data, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
         } catch (error) {
             return new ResponseData<{ any: any}>(null, HttpStatus.ERROR, HttpMessage.ERROR)

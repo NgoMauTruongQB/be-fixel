@@ -1766,9 +1766,9 @@ let CustomerController = class CustomerController {
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
         }
     }
-    async getCustomerById(id) {
+    async getGeneralInformationById(id) {
         try {
-            const data = await this.customerService.getDetailCustomerById(id);
+            const data = await this.customerService.getGeneralInformation(id);
             return new globalClass_1.ResponseData(data, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
         }
         catch (error) {
@@ -1844,7 +1844,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
-], CustomerController.prototype, "getCustomerById", null);
+], CustomerController.prototype, "getGeneralInformationById", null);
 __decorate([
     (0, common_1.Put)(':id'),
     __param(0, (0, common_1.Param)('id')),
@@ -1924,7 +1924,7 @@ let CustomerService = class CustomerService {
         this.prisma = prisma;
     }
     async getCustomers(paginationDto) {
-        const { page = 1, limit = 9, username, email, mobile_number } = paginationDto;
+        const { page = 1, limit = 9, username, email, status, startDate, endDate } = paginationDto;
         const skip = (page - 1) * limit;
         try {
             const filterConditions = {
@@ -1936,28 +1936,33 @@ let CustomerService = class CustomerService {
             if (email) {
                 filterConditions.email = email;
             }
-            if (mobile_number) {
-                filterConditions.mobile_number = mobile_number;
+            if (status) {
+                filterConditions.status = status;
+            }
+            if (startDate && endDate) {
+                filterConditions.activate_time = {
+                    gte: startDate,
+                    lte: endDate,
+                };
             }
             const [customers, totalCount] = await Promise.all([
                 this.prisma.customer.findMany({
                     where: filterConditions,
                     select: {
                         id: true,
-                        uuid: true,
-                        email: true,
                         user_name: true,
-                        mobile_number: true,
-                        avatar: true,
                         name: true,
+                        email: true,
                         status: true,
+                        insert_time: true,
+                        activate_time: true,
                     },
                     skip: Number(skip),
                     take: Number(limit),
                 }),
-                this.prisma.job.count({
+                this.prisma.customer.count({
                     where: {
-                        delete_time: null,
+                        ...filterConditions,
                     },
                 }),
             ]);
@@ -1968,111 +1973,40 @@ let CustomerService = class CustomerService {
             throw error;
         }
     }
-    async getDetailCustomerById(id) {
+    async getGeneralInformation(id) {
         try {
-            const customer = this.prisma.customer.findUnique({
+            const customer = await this.prisma.customer.findUnique({
                 where: {
                     delete_time: null,
                     id,
                 },
                 select: {
                     id: true,
-                    uuid: true,
-                    email: true,
-                    user_name: true,
-                    first_name: true,
-                    last_name: true,
-                    mobile_number: true,
-                    home_number: true,
                     status: true,
-                    activate_time: true,
                     avatar: true,
-                    star: true,
-                    star_count: true,
-                    reward_point: true,
+                    user_name: true,
+                    email: true,
+                    review: true,
                     name: true,
-                    address: {
-                        select: {
-                            id: true,
-                            default: true,
-                            blk_no: true,
-                            unit_no: true,
-                            building: true,
-                            street: true,
-                            country: true,
-                            post_code: true,
-                            home: true
-                        }
-                    },
-                    job: {
-                        where: {
-                            delete_time: null
-                        },
-                        select: {
-                            id: true,
-                            code: true,
-                            service_id: true,
-                            status: true,
-                            is_urgent: true,
-                            insert_time: true,
-                            can_cancel: true,
-                            complete_time: true
-                        }
-                    },
-                    extra: {
-                        where: {
-                            delete_time: null
-                        },
-                        select: {
-                            job: {
-                                where: { delete_time: null },
-                                select: { code: true, service_id: true }
-                            },
-                            type: true,
-                            amount: true,
-                            gst: true,
-                            note: true,
-                            status: true,
-                        }
-                    },
-                    feedback: {
-                        select: {
-                            job_id: true,
-                            job_code: true,
-                            insert_time: true,
-                        }
-                    },
-                    history_action: {
-                        where: { delete_time: null },
-                        select: {
-                            job_id: true,
-                            job_code: true,
-                            handyman: {
-                                select: { name: true, id: true, avatar: true }
-                            },
-                            status: true,
-                            content: true,
-                            note: true,
-                        },
-                    },
-                    milestone: {
-                        where: { delete_time: null },
-                        select: {
-                            job_id: true,
-                            job_code: true,
-                            handyman: {
-                                select: { name: true, id: true, avatar: true }
-                            },
-                            milestoneTime: true,
-                            text: true,
-                            type: true,
-                            status: true,
-                            isCompleted: true,
-                        }
-                    }
+                    mobile_number: true,
+                    activate_time: true,
                 }
             });
-            return customer;
+            if (customer) {
+                const payments = await this.prisma.payment.findMany({
+                    where: { id },
+                    select: { amount: true }
+                });
+                const totalAmount = payments.reduce((total, payment) => total + payment.amount, 0);
+                const data = {
+                    ...customer,
+                    totalAmount
+                };
+                return data;
+            }
+            else {
+                return null;
+            }
         }
         catch (error) {
             throw error;
@@ -2300,6 +2234,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PaginationPaymentDto = exports.PaginationJobDto = exports.AddressDto = exports.ActionUserDto = exports.PaginationCustomerDto = exports.CustomerDto = void 0;
 const class_transformer_1 = __webpack_require__(18);
@@ -2373,8 +2308,19 @@ __decorate([
 ], PaginationCustomerDto.prototype, "email", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], PaginationCustomerDto.prototype, "mobile_number", void 0);
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationCustomerDto.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => new Date(value), { toClassOnly: true }),
+    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+], PaginationCustomerDto.prototype, "startDate", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => new Date(value), { toClassOnly: true }),
+    __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
+], PaginationCustomerDto.prototype, "endDate", void 0);
 class ActionUserDto {
 }
 exports.ActionUserDto = ActionUserDto;
@@ -2786,7 +2732,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("b7b718df0aca314a742c")
+/******/ 		__webpack_require__.h = () => ("0cb61cff8e357c3927bc")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
