@@ -1944,9 +1944,7 @@ let CustomerService = class CustomerService {
         const { page = 1, limit = 9, username, email, status, startDate, endDate } = paginationDto;
         const skip = (page - 1) * limit;
         try {
-            const filterConditions = {
-                delete_time: null,
-            };
+            const filterConditions = {};
             if (username) {
                 filterConditions.user_name = username;
             }
@@ -1973,7 +1971,8 @@ let CustomerService = class CustomerService {
                         status: true,
                         insert_time: true,
                         activate_time: true,
-                        avatar: true
+                        avatar: true,
+                        delete_time: true
                     },
                     skip: Number(skip),
                     take: Number(limit),
@@ -2775,7 +2774,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("33cc7955caa0eb3b42c4")
+/******/ 		__webpack_require__.h = () => ("687fb64423e47812c6dd")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
