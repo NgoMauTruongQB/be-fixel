@@ -1,43 +1,53 @@
-import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
-import { ActionUserDto, AddressDto, PaginationCustomerDto, PaginationDto, PaginationPaymentDto, ReviewDto } from 'src/admin/dto/customer.dto'
-import { CustomerDto } from 'src/admin/dto/customer.dto'
-import { throwError } from 'rxjs'
-import { convertToTimeZone } from 'src/shared/timezone.utility'
+"use strict";
+exports.id = 0;
+exports.ids = null;
+exports.modules = {
 
-@Injectable({})
-export class CustomerService {
-    constructor(private prisma: PrismaService){}
+/***/ 21:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
-    async getCustomers(paginationDto: PaginationCustomerDto): Promise<{ customers: CustomerDto[], totalPages: number, page: number }> {
-        const { page = 1, limit = 9, username, email, status, startDate, endDate } = paginationDto
-        const skip = (page - 1) * limit
-    
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CustomerService = void 0;
+const common_1 = __webpack_require__(6);
+const prisma_service_1 = __webpack_require__(10);
+const timezone_utility_1 = __webpack_require__(12);
+let CustomerService = class CustomerService {
+    constructor(prisma) {
+        this.prisma = prisma;
+    }
+    async getCustomers(paginationDto) {
+        const { page = 1, limit = 9, username, email, status, startDate, endDate } = paginationDto;
+        const skip = (page - 1) * limit;
         try {
-            const filterConditions: Record<string, any> = {
+            const filterConditions = {
                 delete_time: null,
-            }
-    
+            };
             if (username) {
-                filterConditions.user_name = username
+                filterConditions.user_name = username;
             }
-    
             if (email) {
-                filterConditions.email = email
+                filterConditions.email = email;
             }
-    
             if (status) {
-                filterConditions.status = status
+                filterConditions.status = status;
             }
-    
             if (startDate && endDate) {
                 filterConditions.activate_time = {
                     gte: startDate,
                     lte: endDate,
-                }
+                };
             }
-
-    
             const [customers, totalCount] = await Promise.all([
                 this.prisma.customer.findMany({
                     where: filterConditions,
@@ -49,7 +59,6 @@ export class CustomerService {
                         status: true,
                         insert_time: true,
                         activate_time: true,
-                        avatar: true
                     },
                     skip: Number(skip),
                     take: Number(limit),
@@ -59,17 +68,15 @@ export class CustomerService {
                         ...filterConditions,
                     },
                 }),
-            ])
-    
-            const totalPages = Math.ceil(totalCount / limit)
-    
-            return { customers, totalPages, page }
-        } catch (error) {
-            throw error
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { customers, totalPages, page };
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async getGeneralInformation(id: number): Promise<any> {
+    async getGeneralInformation(id) {
         try {
             const customer = await this.prisma.customer.findUnique({
                 where: {
@@ -84,42 +91,37 @@ export class CustomerService {
                     email: true,
                     name: true,
                     mobile_number: true,
-                    activate_time: true,                  
+                    activate_time: true,
                 }
-            })
-
+            });
             if (customer) {
                 const payments = await this.prisma.payment.findMany({
                     where: { id },
                     select: { amount: true }
-                })
-    
-                const totalAmount = payments.reduce((total, payment) => total + payment.amount, 0)
-    
+                });
+                const totalAmount = payments.reduce((total, payment) => total + payment.amount, 0);
                 const data = {
                     ...customer,
                     totalAmount
-                }
-    
-                return data
-            } else {
-                return null
+                };
+                return data;
             }
-        } catch (error) {
-            throw error
+            else {
+                return null;
+            }
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async getJob(id: number, paginationDto: PaginationDto): Promise<any> {
-        const { page = 1, limit = 9 } = paginationDto
-        const skip = (page - 1) * limit
-
+    async getJob(id, paginationDto) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
         try {
-            const filterConditions: Record<string, any> = {
+            const filterConditions = {
                 delete_time: null,
                 customer_id: id,
-            }
-
+            };
             const jobs = await this.prisma.job.findMany({
                 where: filterConditions,
                 select: {
@@ -153,43 +155,35 @@ export class CustomerService {
                 },
                 skip: Number(skip),
                 take: Number(limit),
-            })
-
+            });
             const jobsWithTotals = jobs.map((job) => {
-                const totalRefundedAmount = job.payment.reduce(
-                    (total, payment) => total + (payment.refunded_amount || 0),
-                    0
-                )
-                const totalPenalty = job.payment.reduce(
-                    (total, payment) => total + (payment.penalty || 0),
-                    0
-                )
-                const { payment, ...jobWithoutPayment } = job
+                const totalRefundedAmount = job.payment.reduce((total, payment) => total + (payment.refunded_amount || 0), 0);
+                const totalPenalty = job.payment.reduce((total, payment) => total + (payment.penalty || 0), 0);
+                const { payment, ...jobWithoutPayment } = job;
                 return {
                     ...jobWithoutPayment,
                     totalRefundedAmount,
                     totalPenalty,
-                }
-            })
-
-            const totalPages = Math.ceil(jobsWithTotals.length / limit)
-
-            return { jobs: jobsWithTotals, totalPages, page }
-        } catch (error) {
-            throw error
+                };
+            });
+            const totalPages = Math.ceil(jobsWithTotals.length / limit);
+            return { jobs: jobsWithTotals, totalPages, page };
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async getReviews(id: number, paginationDto: PaginationDto): Promise<{ reviews: ReviewDto[], totalPages: number, page: number }> {
-        const { page = 1, limit = 9 } = paginationDto
-        const skip = (page - 1) * limit
-    
+    async getReviews(paginationDto) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
         try {
+            const filterConditions = {
+                delete_time: null,
+            };
             const [reviews, totalCount] = await Promise.all([
                 this.prisma.review.findMany({
                     where: {
-                        delete_time: null,
-                        insert_by: id
+                        delete_time: null
                     },
                     select: {
                         job_id: true,
@@ -205,20 +199,15 @@ export class CustomerService {
                         delete_time: null,
                     },
                 }),
-            ])
-    
-            const totalPages = Math.ceil(totalCount / limit)
-    
-            return { reviews, totalPages, page }
-        } catch (error) {
-            throw error
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { reviews, totalPages, page };
+        }
+        catch (error) {
+            throw error;
         }
     }
-      
-      
-
-
-    async forceLogoutUser(id: number): Promise<boolean> {
+    async forceLogoutUser(id) {
         try {
             const data = await this.prisma.customer.update({
                 where: { id },
@@ -226,38 +215,37 @@ export class CustomerService {
                     device_token: null,
                     googleToken: null
                 }
-            })
-            if(data) {
-                return true
-            } else {
-                return false
+            });
+            if (data) {
+                return true;
             }
-        } catch (error) {
-            throw error
+            else {
+                return false;
+            }
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async softDeleteCustomer(id: number, actionUser: ActionUserDto): Promise<boolean> {
+    async softDeleteCustomer(id, actionUser) {
         try {
             const data = await this.prisma.customer.update({
                 where: { id },
                 data: {
-                    delete_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
+                    delete_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
                     delete_by: actionUser.user_id
                 }
-            })
-
-            if(!data) {
-                return false
+            });
+            if (!data) {
+                return false;
             }
-
-            return true
-        } catch (error) {
-            throw error
+            return true;
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async restoreCustomer(id: number, actionUser: ActionUserDto): Promise<boolean> {
+    async restoreCustomer(id, actionUser) {
         try {
             const data = await this.prisma.customer.update({
                 where: { id },
@@ -265,23 +253,20 @@ export class CustomerService {
                     delete_time: null,
                     delete_by: null,
                     update_by: actionUser.user_id,
-                    update_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET)
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET)
                 },
-            })
-
-            if(!data) {
-                return false
+            });
+            if (!data) {
+                return false;
             }
-
-            return true
-        } catch (error) {
-            throw error
+            return true;
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async changeAddress(id: number, addressDto: AddressDto): Promise<any> {
+    async changeAddress(id, addressDto) {
         try {
-
             const data = await this.prisma.address.update({
                 where: { id },
                 data: {
@@ -293,42 +278,35 @@ export class CustomerService {
                     street: addressDto.street,
                     country: addressDto.country,
                     post_code: addressDto.post_code,
-                    update_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
                     home: addressDto.is_home,
                     update_by: addressDto.update_by,
                 }
-            })
-
-            if(!data) {
-                return false
+            });
+            if (!data) {
+                return false;
             }
-
-            return true
-        } catch (error) {
-            console.log(error)
-            throw error
+            return true;
+        }
+        catch (error) {
+            console.log(error);
+            throw error;
         }
     }
-
-    async getCustomerPayment(id: number, paginationDto: PaginationPaymentDto): Promise<any> {
-        const { page = 1, limit = 9, job_code, status } = paginationDto
-        const skip = (page - 1) * limit
-
+    async getCustomerPayment(id, paginationDto) {
+        const { page = 1, limit = 9, job_code, status } = paginationDto;
+        const skip = (page - 1) * limit;
         try {
-
-            const filterConditions: Record<string, any> = {
+            const filterConditions = {
                 delete_time: null,
                 customer_id: id
-            }
-        
+            };
             if (job_code) {
-                filterConditions.job_code = job_code
+                filterConditions.job_code = job_code;
             }
-        
             if (status) {
-                filterConditions.status = status
+                filterConditions.status = status;
             }
-        
             const [payments, totalCount] = await Promise.all([
                 this.prisma.payment.findMany({
                     where: filterConditions,
@@ -355,7 +333,6 @@ export class CustomerService {
                                 mobile_number: true,
                             }
                         }
-
                     },
                     skip: Number(skip),
                     take: Number(limit),
@@ -365,13 +342,31 @@ export class CustomerService {
                         delete_time: null,
                     },
                 }),
-            ])
-
-            const totalPages = Math.ceil(totalCount / limit)
-
-            return { payments, totalPages, page }
-        } catch (error) {
-            throw error
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { payments, totalPages, page };
+        }
+        catch (error) {
+            throw error;
         }
     }
-}
+};
+exports.CustomerService = CustomerService;
+exports.CustomerService = CustomerService = __decorate([
+    (0, common_1.Injectable)({}),
+    __metadata("design:paramtypes", [typeof (_a = typeof prisma_service_1.PrismaService !== "undefined" && prisma_service_1.PrismaService) === "function" ? _a : Object])
+], CustomerService);
+
+
+/***/ })
+
+};
+exports.runtime =
+/******/ function(__webpack_require__) { // webpackRuntimeModules
+/******/ /* webpack/runtime/getFullHash */
+/******/ (() => {
+/******/ 	__webpack_require__.h = () => ("ee01000238ef501b3530")
+/******/ })();
+/******/ 
+/******/ }
+;

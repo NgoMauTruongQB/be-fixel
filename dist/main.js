@@ -1745,7 +1745,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CustomerController = void 0;
 const common_1 = __webpack_require__(6);
@@ -1775,10 +1775,19 @@ let CustomerController = class CustomerController {
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
         }
     }
-    async getCustomerJobs(id, paginationDto) {
+    async getJobs(id, paginationDto) {
         try {
             const job = await this.customerService.getJob(id, paginationDto);
             return new globalClass_1.ResponseData(job, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async getReviews(id, paginationDto) {
+        try {
+            const reviews = await this.customerService.getReviews(id, paginationDto);
+            return new globalClass_1.ResponseData(reviews, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
         }
         catch (error) {
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
@@ -1850,46 +1859,54 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_e = typeof customer_dto_1.PaginationJobDto !== "undefined" && customer_dto_1.PaginationJobDto) === "function" ? _e : Object]),
-    __metadata("design:returntype", Promise)
-], CustomerController.prototype, "getCustomerJobs", null);
+    __metadata("design:paramtypes", [Number, typeof (_e = typeof customer_dto_1.PaginationDto !== "undefined" && customer_dto_1.PaginationDto) === "function" ? _e : Object]),
+    __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
+], CustomerController.prototype, "getJobs", null);
+__decorate([
+    (0, common_1.Get)('/:id/reviews'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_g = typeof customer_dto_1.PaginationDto !== "undefined" && customer_dto_1.PaginationDto) === "function" ? _g : Object]),
+    __metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
+], CustomerController.prototype, "getReviews", null);
 __decorate([
     (0, common_1.Put)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
+    __metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
 ], CustomerController.prototype, "forceLogoutUser", null);
 __decorate([
     (0, common_1.Put)('soft-delete/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_g = typeof customer_dto_1.ActionUserDto !== "undefined" && customer_dto_1.ActionUserDto) === "function" ? _g : Object]),
-    __metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
+    __metadata("design:paramtypes", [Number, typeof (_k = typeof customer_dto_1.ActionUserDto !== "undefined" && customer_dto_1.ActionUserDto) === "function" ? _k : Object]),
+    __metadata("design:returntype", typeof (_l = typeof Promise !== "undefined" && Promise) === "function" ? _l : Object)
 ], CustomerController.prototype, "softDeleteCustomer", null);
 __decorate([
     (0, common_1.Put)('restore/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_j = typeof customer_dto_1.ActionUserDto !== "undefined" && customer_dto_1.ActionUserDto) === "function" ? _j : Object]),
-    __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
+    __metadata("design:paramtypes", [Number, typeof (_m = typeof customer_dto_1.ActionUserDto !== "undefined" && customer_dto_1.ActionUserDto) === "function" ? _m : Object]),
+    __metadata("design:returntype", typeof (_o = typeof Promise !== "undefined" && Promise) === "function" ? _o : Object)
 ], CustomerController.prototype, "restoreCustomer", null);
 __decorate([
     (0, common_1.Put)('change-address/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_l = typeof customer_dto_1.AddressDto !== "undefined" && customer_dto_1.AddressDto) === "function" ? _l : Object]),
-    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
+    __metadata("design:paramtypes", [Number, typeof (_p = typeof customer_dto_1.AddressDto !== "undefined" && customer_dto_1.AddressDto) === "function" ? _p : Object]),
+    __metadata("design:returntype", typeof (_q = typeof Promise !== "undefined" && Promise) === "function" ? _q : Object)
 ], CustomerController.prototype, "changeAddress", null);
 __decorate([
     (0, common_1.Get)('/:id/payment'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, typeof (_o = typeof customer_dto_1.PaginationPaymentDto !== "undefined" && customer_dto_1.PaginationPaymentDto) === "function" ? _o : Object]),
+    __metadata("design:paramtypes", [Number, typeof (_r = typeof customer_dto_1.PaginationPaymentDto !== "undefined" && customer_dto_1.PaginationPaymentDto) === "function" ? _r : Object]),
     __metadata("design:returntype", Promise)
 ], CustomerController.prototype, "getCustomerPayment", null);
 exports.CustomerController = CustomerController = __decorate([
@@ -1956,6 +1973,7 @@ let CustomerService = class CustomerService {
                         status: true,
                         insert_time: true,
                         activate_time: true,
+                        avatar: true
                     },
                     skip: Number(skip),
                     take: Number(limit),
@@ -2065,6 +2083,38 @@ let CustomerService = class CustomerService {
             });
             const totalPages = Math.ceil(jobsWithTotals.length / limit);
             return { jobs: jobsWithTotals, totalPages, page };
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async getReviews(id, paginationDto) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
+        try {
+            const [reviews, totalCount] = await Promise.all([
+                this.prisma.review.findMany({
+                    where: {
+                        delete_time: null,
+                        insert_by: id
+                    },
+                    select: {
+                        job_id: true,
+                        job_code: true,
+                        star_for_handyman: true,
+                        content_for_handyman: true
+                    },
+                    skip: Number(skip),
+                    take: Number(limit),
+                }),
+                this.prisma.review.count({
+                    where: {
+                        delete_time: null,
+                    },
+                }),
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { reviews, totalPages, page };
         }
         catch (error) {
             throw error;
@@ -2238,7 +2288,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PaginationPaymentDto = exports.PaginationJobDto = exports.AddressDto = exports.ActionUserDto = exports.PaginationCustomerDto = exports.CustomerDto = void 0;
+exports.ReviewDto = exports.PaginationPaymentDto = exports.PaginationDto = exports.AddressDto = exports.ActionUserDto = exports.PaginationCustomerDto = exports.CustomerDto = void 0;
 const class_transformer_1 = __webpack_require__(18);
 const class_validator_1 = __webpack_require__(17);
 class CustomerDto {
@@ -2382,23 +2432,23 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], AddressDto.prototype, "update_by", void 0);
-class PaginationJobDto {
+class PaginationDto {
 }
-exports.PaginationJobDto = PaginationJobDto;
+exports.PaginationDto = PaginationDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
     (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
     __metadata("design:type", Number)
-], PaginationJobDto.prototype, "page", void 0);
+], PaginationDto.prototype, "page", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(1),
     (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
     __metadata("design:type", Number)
-], PaginationJobDto.prototype, "limit", void 0);
+], PaginationDto.prototype, "limit", void 0);
 class PaginationPaymentDto {
 }
 exports.PaginationPaymentDto = PaginationPaymentDto;
@@ -2426,6 +2476,9 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], PaginationPaymentDto.prototype, "status", void 0);
+class ReviewDto {
+}
+exports.ReviewDto = ReviewDto;
 
 
 /***/ }),
@@ -2722,7 +2775,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("5419f69ae5168b0926af")
+/******/ 		__webpack_require__.h = () => ("33cc7955caa0eb3b42c4")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */

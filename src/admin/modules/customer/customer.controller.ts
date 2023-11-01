@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Put, Query } from '@nestjs/common'
 import { CustomerService } from './customer.service'
 import { ResponseData } from 'src/admin/global/globalClass'
-import { ActionUserDto, AddressDto, PaginationCustomerDto, PaginationJobDto, PaginationPaymentDto } from 'src/admin/dto/customer.dto'
+import { ActionUserDto, AddressDto, PaginationCustomerDto, PaginationDto, PaginationPaymentDto, ReviewDto } from 'src/admin/dto/customer.dto'
 import { CustomerDto } from 'src/admin/dto/customer.dto'
 import { HttpMessage, HttpStatus } from 'src/admin/global/globalEnum'
 import { address, job } from '@prisma/client'
@@ -36,14 +36,27 @@ export class CustomerController {
     }
 
     @Get('/:id/job')
-    async getCustomerJobs(
+    async getJobs(
         @Param('id') id: number,
-        @Query() paginationDto: PaginationJobDto
-    ) {
+        @Query() paginationDto: PaginationDto
+    ): Promise<ResponseData<{ any: any, totalPages: number, page: number}>> {
         try {
             const job = await this.customerService.getJob(id, paginationDto)
 
             return new ResponseData<{any, totalPages: number, page: number}>(job, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            return new ResponseData<any>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+        }
+    }
+
+    @Get('/:id/reviews')
+    async getReviews(
+        @Param('id') id: number,
+        @Query() paginationDto: PaginationDto
+    ): Promise<ResponseData<{ reviews: ReviewDto[], totalPages: number, page: number}>> {
+        try {
+            const reviews = await this.customerService.getReviews(id, paginationDto)
+            return new ResponseData<{reviews: ReviewDto[], totalPages: number, page: number}>(reviews, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
         } catch (error) {
             return new ResponseData<any>(null, HttpStatus.ERROR, HttpMessage.ERROR)
         }

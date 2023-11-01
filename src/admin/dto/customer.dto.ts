@@ -115,7 +115,7 @@ export class AddressDto {
 
 }
 
-export class PaginationJobDto {
+export class PaginationDto {
     @IsOptional()
     @IsInt()
     @Min(1)
@@ -149,4 +149,11 @@ export class PaginationPaymentDto {
     @IsOptional()
     @IsBoolean()
     status: boolean
+}
+
+export class ReviewDto {
+    job_id: number
+    job_code: string
+    star_for_handyman: number
+    content_for_handyman: string
 }
