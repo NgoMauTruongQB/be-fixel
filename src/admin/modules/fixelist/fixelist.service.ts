@@ -8,10 +8,9 @@ export class FixelistService {
     constructor(private prisma: PrismaService){}
 
     async getFixelist(paginationDto: PaginationFixelistDto): Promise<any>{
-        const { page = 1, limit = 9, email, username, service } = paginationDto
+        const { page = 1, limit = 9, email, username, status, startDate, endDate  } = paginationDto
         const skip = (page - 1) * limit
 
-        console.log(service)
 
         try {
             const filterConditions: Record<string, any> = {
@@ -19,16 +18,21 @@ export class FixelistService {
             }
         
             if (username) {
-                filterConditions.user_name = username;
+                filterConditions.user_name = username
             }
         
             if (email) {
-                filterConditions.email = email;
+                filterConditions.email = email
             }
         
-            if (service) {
-                filterConditions.services = {
-                    hasSome: [service]
+            if (status) {
+                filterConditions.status = status
+            }
+
+            if (startDate && endDate) {
+                filterConditions.insert_time = {
+                    gte: startDate,
+                    lte: endDate,
                 }
             }
 
@@ -37,22 +41,20 @@ export class FixelistService {
                     where: filterConditions,
                     select: {
                         id: true,
-                        uuid: true,
-                        email: true,
                         user_name: true,
-                        status: true,
-                        mobile_number: true,
-                        position: true,
-                        avatar: true,
                         name: true,
-                        services: true,
+                        email: true,
+                        role: true,
+                        status: true,
+                        insert_time: true,
+                        approve_time: true
                     },
                     skip: Number(skip),
                     take: Number(limit),
                 }),
-                this.prisma.job.count({
+                this.prisma.handyman.count({
                     where: {
-                        delete_time: null,
+                        ...filterConditions
                     },
                 }),
             ])
@@ -61,7 +63,6 @@ export class FixelistService {
 
             return { fixelist, totalPages, page }
         } catch (error) {
-            console.log(error)
             throw error
         }
     }

@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Param, Put, Query } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common'
 import { CustomerService } from './customer.service'
 import { ResponseData } from 'src/admin/global/globalClass'
-import { ActionUserDto, AddressDto, PaginationCustomerDto, PaginationDto, PaginationPaymentDto, ReviewDto } from 'src/admin/dto/customer.dto'
+import { ActionUserDto, AddressDto, GeneralInformationDto, PaginationCustomerDto, PaginationDto, PaginationPaymentDto, ReviewDto } from 'src/admin/dto/customer.dto'
 import { CustomerDto } from 'src/admin/dto/customer.dto'
 import { HttpMessage, HttpStatus } from 'src/admin/global/globalEnum'
 import { address, job } from '@prisma/client'
@@ -100,19 +100,6 @@ export class CustomerController {
         }
     }
 
-    @Put('change-address/:id')
-    async changeAddress(
-        @Param('id') id: number,
-        @Body() addressDto: AddressDto
-    ): Promise<ResponseData<address>> {
-        try {
-            const address = await this.customerService.changeAddress(id, addressDto)
-            return new ResponseData<address>(address, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
-        } catch (error) {
-            return new ResponseData<address>(null, HttpStatus.ERROR, HttpMessage.ERROR)
-        }
-    } 
-
 
     @Get('/:id/payment')
     async getCustomerPayment(
@@ -120,10 +107,37 @@ export class CustomerController {
         @Query() paginationDto: PaginationPaymentDto
     ) {
         try {
-            const payment = await this.customerService.getCustomerPayment(id, paginationDto)
+            const payment = await this.customerService.getPayment(id, paginationDto)
             return new ResponseData<{any, totalPages: number, page: number}>(payment, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
         } catch (error) {
             return new ResponseData<any>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+        }
+    }
+
+    @Get('/:id/address')
+    async getAddress(
+        @Param('id') id: number,
+        @Query() paginationDto: PaginationPaymentDto
+    ) {
+        try {
+            const address = await this.customerService.getAddress(id, paginationDto)
+            return new ResponseData<{any, totalPages: number, page: number}>(address, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            return new ResponseData<any>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+        }
+    }
+
+    @Put('information')
+    async updateGeneralInformation(@Body() paginationDto: GeneralInformationDto): Promise<ResponseData<any>> 
+    {
+        console.log('[DEBUG]: ')
+        try {
+            // const data = await this.customerService.updateGeneralInformation(paginationDto)
+            const data = paginationDto
+            return new ResponseData<any>(data, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            console.log('[DEBUG]: ', error)
+            return new ResponseData<any>(null, HttpStatus.ERROR, error.message)
         }
     }
 }

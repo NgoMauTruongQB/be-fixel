@@ -25,5 +25,14 @@ export class PaginationFixelistDto {
     @IsOptional()
     @IsNumber()
     @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
-    service: number
+    status: number
+
+    @IsOptional()
+    @Transform(({ value }: TransformFnParams) => new Date(value), { toClassOnly: true })
+    startDate: Date
+
+    @IsOptional()
+    @Transform(({ value }: TransformFnParams) => new Date(value), { toClassOnly: true })
+    endDate: Date
 }
+

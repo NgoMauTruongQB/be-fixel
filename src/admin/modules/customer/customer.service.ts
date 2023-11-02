@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import { ActionUserDto, AddressDto, PaginationCustomerDto, PaginationDto, PaginationPaymentDto, ReviewDto } from 'src/admin/dto/customer.dto'
+import { ActionUserDto, AddressDto, GeneralInformationDto, PaginationCustomerDto, PaginationDto, PaginationPaymentDto, ReviewDto } from 'src/admin/dto/customer.dto'
 import { CustomerDto } from 'src/admin/dto/customer.dto'
 import { throwError } from 'rxjs'
 import { convertToTimeZone } from 'src/shared/timezone.utility'
@@ -203,6 +203,7 @@ export class CustomerService {
                 this.prisma.review.count({
                     where: {
                         delete_time: null,
+                        insert_by: id
                     },
                 }),
             ])
@@ -210,6 +211,90 @@ export class CustomerService {
             const totalPages = Math.ceil(totalCount / limit)
     
             return { reviews, totalPages, page }
+        } catch (error) {
+            throw error
+        }
+    }
+
+    async getPayment(id: number, paginationDto: PaginationDto): Promise<any> {
+        const { page = 1, limit = 9 } = paginationDto
+        const skip = (page - 1) * limit
+
+        try {
+
+            const filterConditions: Record<string, any> = {
+                delete_time: null,
+                customer_id: id
+            }
+        
+            const [payments, totalCount] = await Promise.all([
+                this.prisma.payment.findMany({
+                    where: filterConditions,
+                    select: {
+                        id: true,
+                        insert_time: true,
+                        charge_id: true,
+                        job_code: true,
+                        type: true,
+                        status: true,
+                        amount: true,
+                    },
+                    skip: Number(skip),
+                    take: Number(limit),
+                }),
+                this.prisma.payment.count({
+                    where: {
+                        ...filterConditions
+                    },
+                }),
+            ])
+
+            const totalPages = Math.ceil(totalCount / limit)
+
+            return { payments, totalPages, page }
+        } catch (error) {
+            throw error
+        }
+    }
+
+    async getAddress(id: number, paginationDto: PaginationDto): Promise<any> {
+        const { page = 1, limit = 9 } = paginationDto
+        const skip = (page - 1) * limit
+
+        try {
+
+            const filterConditions: Record<string, any> = {
+                delete_time: null,
+                customer_id: id
+            }
+        
+            const [address, totalCount] = await Promise.all([
+                this.prisma.address.findMany({
+                    where: filterConditions,
+                    select: {
+                        id: true,
+                        floor: true,
+                        unit_no: true,
+                        building: true,
+                        home: true,
+                        street: true,
+                        country: true,
+                        post_code: true,
+                        default: true
+                    },
+                    skip: Number(skip),
+                    take: Number(limit),
+                }),
+                this.prisma.address.count({
+                    where: {
+                        ...filterConditions
+                    },
+                }),
+            ])
+
+            const totalPages = Math.ceil(totalCount / limit)
+
+            return { address, totalPages, page }
         } catch (error) {
             throw error
         }
@@ -276,99 +361,43 @@ export class CustomerService {
         }
     }
 
-    async changeAddress(id: number, addressDto: AddressDto): Promise<any> {
+    async updateGeneralInformation(paginationDto: GeneralInformationDto): Promise<any> {
         try {
+            const usernameExists = await this.isUsernameExistsForOtherCustomers(paginationDto.user_name, paginationDto.id)
 
-            const data = await this.prisma.address.update({
-                where: { id },
+            if (usernameExists && !paginationDto.is_delete_avatar) {
+                throw new Error("Username already exists.")
+            }
+
+            const data = await this.prisma.customer.update({
+                where: {
+                    id: paginationDto.id,
+                },
                 data: {
-                    default: addressDto.is_default,
-                    blk_no: addressDto.blk_no,
-                    floor: addressDto.floor,
-                    unit_no: addressDto.floor,
-                    building: addressDto.building,
-                    street: addressDto.street,
-                    country: addressDto.country,
-                    post_code: addressDto.post_code,
-                    update_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
-                    home: addressDto.is_home,
-                    update_by: addressDto.update_by,
-                }
+                    name: paginationDto.name,
+                    user_name: paginationDto.user_name,
+                    mobile_number: paginationDto.mobile,
+                    avatar: paginationDto.is_delete_avatar ? '' : undefined,
+                },
             })
 
-            if(!data) {
-                return false
-            }
-
-            return true
-        } catch (error) {
-            console.log(error)
-            throw error
-        }
-    }
-
-    async getCustomerPayment(id: number, paginationDto: PaginationPaymentDto): Promise<any> {
-        const { page = 1, limit = 9, job_code, status } = paginationDto
-        const skip = (page - 1) * limit
-
-        try {
-
-            const filterConditions: Record<string, any> = {
-                delete_time: null,
-                customer_id: id
-            }
-        
-            if (job_code) {
-                filterConditions.job_code = job_code
-            }
-        
-            if (status) {
-                filterConditions.status = status
-            }
-        
-            const [payments, totalCount] = await Promise.all([
-                this.prisma.payment.findMany({
-                    where: filterConditions,
-                    select: {
-                        id: true,
-                        type: true,
-                        job_code: true,
-                        amount: true,
-                        net: true,
-                        fee: true,
-                        fee_vat: true,
-                        interest: true,
-                        interest_vat: true,
-                        currency: true,
-                        paid: true,
-                        status: true,
-                        charge_id: true,
-                        ref_charge_id: true,
-                        handyman: {
-                            select: {
-                                id: true,
-                                name: true,
-                                user_name: true,
-                                mobile_number: true,
-                            }
-                        }
-
-                    },
-                    skip: Number(skip),
-                    take: Number(limit),
-                }),
-                this.prisma.job.count({
-                    where: {
-                        delete_time: null,
-                    },
-                }),
-            ])
-
-            const totalPages = Math.ceil(totalCount / limit)
-
-            return { payments, totalPages, page }
+            return data
         } catch (error) {
             throw error
         }
     }
+
+    async isUsernameExistsForOtherCustomers(username: string, currentCustomerId: number): Promise<boolean> {
+        const existingUser = await this.prisma.customer.findFirst({
+            where: {
+                user_name: username,
+                NOT: {
+                    id: currentCustomerId,
+                },
+            },
+        })
+
+        return !!existingUser
+    }
+      
 }

@@ -157,3 +157,35 @@ export class ReviewDto {
     star_for_handyman: number
     content_for_handyman: string
 }
+
+export class AddressInfoDto {
+    job_id: number
+    job_code: string
+    star_for_handyman: number
+    content_for_handyman: string
+}
+
+export class GeneralInformationDto {
+    @IsNumber()
+    @IsNotEmpty()
+    id?: number
+
+    @IsNotEmpty()
+    @IsString()
+    user_name?: string
+
+    @IsOptional()
+    @IsString()
+    name?: string
+
+    @IsOptional()
+    @IsString()
+    mobile?: string
+
+    @IsNotEmpty()
+    @IsBoolean()
+    is_delete_avatar?: boolean
+
+    @IsNotEmpty()
+    actionUser?: number
+}
