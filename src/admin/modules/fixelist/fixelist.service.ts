@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { PaginationDto, PaginationFixelistDto, ReviewDto } from 'src/admin/dto/fixelist.dto'
 import { job } from '@prisma/client'
+import { SlowBuffer } from 'buffer'
 
 @Injectable({})
 export class FixelistService {
@@ -213,7 +214,7 @@ export class FixelistService {
 
             const filterConditions: Record<string, any> = {
                 delete_time: null,
-                customer_id: id
+                handyman_id: id
             }
         
             const [payments, totalCount] = await Promise.all([
@@ -227,6 +228,49 @@ export class FixelistService {
                         type: true,
                         status: true,
                         amount: true,
+                    },
+                    skip: Number(skip),
+                    take: Number(limit),
+                }),
+                this.prisma.payment.count({
+                    where: {
+                        ...filterConditions
+                    },
+                }),
+            ])
+
+            const totalPages = Math.ceil(totalCount / limit)
+
+            return { payments, totalPages, page }
+        } catch (error) {
+            throw error
+        }
+    }
+
+    async getWorkers(id: number, paginationDto: PaginationDto): Promise<any> {
+        const { page = 1, limit = 9 } = paginationDto
+        const skip = (page - 1) * limit
+
+        try {
+
+            const filterConditions: Record<string, any> = {
+                delete_time: null,
+                id
+            }
+        
+            const [payments, totalCount] = await Promise.all([
+                this.prisma.handyman.findMany({
+                    where: filterConditions,
+                    select: {
+                        other_handyman: {
+                            select: {
+                                user_name: true,
+                                email: true,
+                                mobile_number: true,
+                                status: true,
+                                approve_time: true
+                            }
+                        }
                     },
                     skip: Number(skip),
                     take: Number(limit),

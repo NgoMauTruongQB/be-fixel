@@ -166,10 +166,6 @@ export class AddressInfoDto {
 }
 
 export class GeneralInformationDto {
-    @IsNumber()
-    @IsNotEmpty()
-    id?: number
-
     @IsNotEmpty()
     @IsString()
     user_name?: string

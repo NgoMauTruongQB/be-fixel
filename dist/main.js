@@ -1838,14 +1838,12 @@ let CustomerController = class CustomerController {
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
         }
     }
-    async updateGeneralInformation(paginationDto) {
-        console.log('[DEBUG]: ');
+    async updateGeneralInformation(id, paginationDto) {
         try {
-            const data = paginationDto;
+            const data = await this.customerService.updateGeneralInformation(id, paginationDto);
             return new globalClass_1.ResponseData(data, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
         }
         catch (error) {
-            console.log('[DEBUG]: ', error);
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, error.message);
         }
     }
@@ -1921,10 +1919,11 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CustomerController.prototype, "getAddress", null);
 __decorate([
-    (0, common_1.Put)('information'),
-    __param(0, (0, common_1.Body)()),
+    (0, common_1.Put)('/information/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_r = typeof customer_dto_1.GeneralInformationDto !== "undefined" && customer_dto_1.GeneralInformationDto) === "function" ? _r : Object]),
+    __metadata("design:paramtypes", [Number, typeof (_r = typeof customer_dto_1.GeneralInformationDto !== "undefined" && customer_dto_1.GeneralInformationDto) === "function" ? _r : Object]),
     __metadata("design:returntype", typeof (_s = typeof Promise !== "undefined" && Promise) === "function" ? _s : Object)
 ], CustomerController.prototype, "updateGeneralInformation", null);
 exports.CustomerController = CustomerController = __decorate([
@@ -2270,24 +2269,31 @@ let CustomerService = class CustomerService {
             throw error;
         }
     }
-    async updateGeneralInformation(paginationDto) {
+    async updateGeneralInformation(id, paginationDto) {
         try {
-            const usernameExists = await this.isUsernameExistsForOtherCustomers(paginationDto.user_name, paginationDto.id);
+            const usernameExists = await this.isUsernameExistsForOtherCustomers(paginationDto.user_name, id);
             if (usernameExists && !paginationDto.is_delete_avatar) {
-                throw new Error("Username already exists.");
+                throw new Error('Username already exists.');
             }
-            const data = await this.prisma.customer.update({
+            var data = await this.prisma.customer.update({
                 where: {
-                    id: paginationDto.id,
+                    id: id,
                 },
                 data: {
                     name: paginationDto.name,
                     user_name: paginationDto.user_name,
                     mobile_number: paginationDto.mobile,
                     avatar: paginationDto.is_delete_avatar ? '' : undefined,
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
+                    update_by: paginationDto.actionUser
                 },
             });
-            return data;
+            if (data) {
+                return true;
+            }
+            else {
+                return false;
+            }
         }
         catch (error) {
             throw error;
@@ -2527,11 +2533,6 @@ class GeneralInformationDto {
 }
 exports.GeneralInformationDto = GeneralInformationDto;
 __decorate([
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", Number)
-], GeneralInformationDto.prototype, "id", void 0);
-__decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
@@ -2609,7 +2610,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FixelistController = void 0;
 const common_1 = __webpack_require__(6);
@@ -2657,6 +2658,24 @@ let FixelistController = class FixelistController {
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
         }
     }
+    async getCustomerPayment(id, paginationDto) {
+        try {
+            const payment = await this.fixelistService.getPayment(id, paginationDto);
+            return new globalClass_1.ResponseData(payment, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async getWorkers(id, paginationDto) {
+        try {
+            const payment = await this.fixelistService.getWorkers(id, paginationDto);
+            return new globalClass_1.ResponseData(payment, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
 };
 exports.FixelistController = FixelistController;
 __decorate([
@@ -2689,6 +2708,22 @@ __decorate([
     __metadata("design:paramtypes", [Number, typeof (_g = typeof fixelist_dto_1.PaginationDto !== "undefined" && fixelist_dto_1.PaginationDto) === "function" ? _g : Object]),
     __metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
 ], FixelistController.prototype, "getReviews", null);
+__decorate([
+    (0, common_1.Get)('/:id/payment'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_j = typeof fixelist_dto_1.PaginationDto !== "undefined" && fixelist_dto_1.PaginationDto) === "function" ? _j : Object]),
+    __metadata("design:returntype", Promise)
+], FixelistController.prototype, "getCustomerPayment", null);
+__decorate([
+    (0, common_1.Get)('/:id/workers'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_k = typeof fixelist_dto_1.PaginationDto !== "undefined" && fixelist_dto_1.PaginationDto) === "function" ? _k : Object]),
+    __metadata("design:returntype", Promise)
+], FixelistController.prototype, "getWorkers", null);
 exports.FixelistController = FixelistController = __decorate([
     (0, common_1.Controller)('/api/fixelist'),
     __metadata("design:paramtypes", [typeof (_a = typeof fixelist_service_1.FixelistService !== "undefined" && fixelist_service_1.FixelistService) === "function" ? _a : Object])
@@ -2899,7 +2934,7 @@ let FixelistService = class FixelistService {
         try {
             const filterConditions = {
                 delete_time: null,
-                customer_id: id
+                handyman_id: id
             };
             const [payments, totalCount] = await Promise.all([
                 this.prisma.payment.findMany({
@@ -2912,6 +2947,44 @@ let FixelistService = class FixelistService {
                         type: true,
                         status: true,
                         amount: true,
+                    },
+                    skip: Number(skip),
+                    take: Number(limit),
+                }),
+                this.prisma.payment.count({
+                    where: {
+                        ...filterConditions
+                    },
+                }),
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { payments, totalPages, page };
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async getWorkers(id, paginationDto) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
+        try {
+            const filterConditions = {
+                delete_time: null,
+                id
+            };
+            const [payments, totalCount] = await Promise.all([
+                this.prisma.handyman.findMany({
+                    where: filterConditions,
+                    select: {
+                        other_handyman: {
+                            select: {
+                                user_name: true,
+                                email: true,
+                                mobile_number: true,
+                                status: true,
+                                approve_time: true
+                            }
+                        }
                     },
                     skip: Number(skip),
                     take: Number(limit),
@@ -3091,7 +3164,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("96b31a43ebbdefd849e0")
+/******/ 		__webpack_require__.h = () => ("e602815e1d80b4fd46a6")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */

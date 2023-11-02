@@ -127,16 +127,15 @@ export class CustomerController {
         }
     }
 
-    @Put('information')
-    async updateGeneralInformation(@Body() paginationDto: GeneralInformationDto): Promise<ResponseData<any>> 
-    {
-        console.log('[DEBUG]: ')
+    @Put('/information/:id')
+    async updateGeneralInformation(
+        @Param('id') id: number,
+        @Body() paginationDto: GeneralInformationDto
+    ): Promise<ResponseData<boolean>> {
         try {
-            // const data = await this.customerService.updateGeneralInformation(paginationDto)
-            const data = paginationDto
+            const data = await this.customerService.updateGeneralInformation(id, paginationDto)
             return new ResponseData<any>(data, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
         } catch (error) {
-            console.log('[DEBUG]: ', error)
             return new ResponseData<any>(null, HttpStatus.ERROR, error.message)
         }
     }

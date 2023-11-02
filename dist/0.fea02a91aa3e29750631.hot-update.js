@@ -3,7 +3,7 @@ exports.id = 0;
 exports.ids = null;
 exports.modules = {
 
-/***/ 25:
+/***/ 21:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -18,20 +18,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.FixelistService = void 0;
+exports.CustomerService = void 0;
 const common_1 = __webpack_require__(6);
 const prisma_service_1 = __webpack_require__(10);
-let FixelistService = class FixelistService {
+const timezone_utility_1 = __webpack_require__(12);
+let CustomerService = class CustomerService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async getFixelist(paginationDto) {
-        const { page = 1, limit = 9, email, username, status, startDate, endDate } = paginationDto;
+    async getCustomers(paginationDto) {
+        const { page = 1, limit = 9, username, email, status, startDate, endDate } = paginationDto;
         const skip = (page - 1) * limit;
         try {
-            const filterConditions = {
-                delete_time: null,
-            };
+            const filterConditions = {};
             if (username) {
                 filterConditions.user_name = username;
             }
@@ -42,35 +41,36 @@ let FixelistService = class FixelistService {
                 filterConditions.status = status;
             }
             if (startDate && endDate) {
-                filterConditions.insert_time = {
+                filterConditions.activate_time = {
                     gte: startDate,
                     lte: endDate,
                 };
             }
-            const [fixelist, totalCount] = await Promise.all([
-                this.prisma.handyman.findMany({
+            const [customers, totalCount] = await Promise.all([
+                this.prisma.customer.findMany({
                     where: filterConditions,
                     select: {
                         id: true,
                         user_name: true,
                         name: true,
                         email: true,
-                        role: true,
                         status: true,
                         insert_time: true,
-                        approve_time: true
+                        activate_time: true,
+                        avatar: true,
+                        delete_time: true
                     },
                     skip: Number(skip),
                     take: Number(limit),
                 }),
-                this.prisma.handyman.count({
+                this.prisma.customer.count({
                     where: {
-                        ...filterConditions
+                        ...filterConditions,
                     },
                 }),
             ]);
             const totalPages = Math.ceil(totalCount / limit);
-            return { fixelist, totalPages, page };
+            return { customers, totalPages, page };
         }
         catch (error) {
             throw error;
@@ -78,7 +78,7 @@ let FixelistService = class FixelistService {
     }
     async getGeneralInformation(id) {
         try {
-            const handyman = await this.prisma.handyman.findUnique({
+            const customer = await this.prisma.customer.findUnique({
                 where: {
                     delete_time: null,
                     id,
@@ -86,30 +86,29 @@ let FixelistService = class FixelistService {
                 select: {
                     id: true,
                     status: true,
-                    role: true,
                     avatar: true,
                     user_name: true,
                     email: true,
-                    review: true,
                     name: true,
                     mobile_number: true,
-                    approve_time: true,
-                    services: true,
-                    address: true,
-                    gst: true,
-                    uen: true,
-                    recipient: {
-                        where: { delete_time: null },
-                        select: {
-                            bank_name: true,
-                            bank_number: true,
-                            bank_brand: true,
-                            insert_time: true,
-                        }
-                    }
+                    activate_time: true,
                 }
             });
-            return handyman;
+            if (customer) {
+                const payments = await this.prisma.payment.findMany({
+                    where: { id },
+                    select: { amount: true }
+                });
+                const totalAmount = payments.reduce((total, payment) => total + payment.amount, 0);
+                const data = {
+                    ...customer,
+                    totalAmount
+                };
+                return data;
+            }
+            else {
+                return null;
+            }
         }
         catch (error) {
             throw error;
@@ -121,7 +120,7 @@ let FixelistService = class FixelistService {
         try {
             const filterConditions = {
                 delete_time: null,
-                handyman_id: id,
+                customer_id: id,
             };
             const jobs = await this.prisma.job.findMany({
                 where: filterConditions,
@@ -129,7 +128,12 @@ let FixelistService = class FixelistService {
                     id: true,
                     code: true,
                     status: true,
-                    customer: { select: { id: true, user_name: true } },
+                    handyman_job_handyman_idTohandyman: {
+                        select: {
+                            id: true,
+                            name: true,
+                        },
+                    },
                     handyman_job_worker_idTohandyman: {
                         select: {
                             id: true,
@@ -140,22 +144,25 @@ let FixelistService = class FixelistService {
                     schedule_time: true,
                     complete_time: true,
                     paid_amount: true,
+                    payment_status: true,
                     payment: {
                         select: {
-                            penalty: true
-                        }
+                            penalty: true,
+                            refunded_amount: true,
+                        },
                     },
-                    payment_fixelist_time: true,
-                    payment_status: true,
+                    update_time: true,
                 },
                 skip: Number(skip),
                 take: Number(limit),
             });
             const jobsWithTotals = jobs.map((job) => {
+                const totalRefundedAmount = job.payment.reduce((total, payment) => total + (payment.refunded_amount || 0), 0);
                 const totalPenalty = job.payment.reduce((total, payment) => total + (payment.penalty || 0), 0);
                 const { payment, ...jobWithoutPayment } = job;
                 return {
                     ...jobWithoutPayment,
+                    totalRefundedAmount,
                     totalPenalty,
                 };
             });
@@ -174,13 +181,13 @@ let FixelistService = class FixelistService {
                 this.prisma.review.findMany({
                     where: {
                         delete_time: null,
-                        handyman_id: id
+                        customer_id: id
                     },
                     select: {
                         job_id: true,
                         job_code: true,
-                        star_for_customer: true,
-                        content_for_customer: true
+                        star_for_handyman: true,
+                        content_for_handyman: true
                     },
                     skip: Number(skip),
                     take: Number(limit),
@@ -188,7 +195,7 @@ let FixelistService = class FixelistService {
                 this.prisma.review.count({
                     where: {
                         delete_time: null,
-                        insert_by: id
+                        customer_id: id
                     },
                 }),
             ]);
@@ -235,12 +242,138 @@ let FixelistService = class FixelistService {
             throw error;
         }
     }
+    async getAddress(id, paginationDto) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
+        try {
+            const filterConditions = {
+                delete_time: null,
+                customer_id: id
+            };
+            const [address, totalCount] = await Promise.all([
+                this.prisma.address.findMany({
+                    where: filterConditions,
+                    select: {
+                        id: true,
+                        floor: true,
+                        unit_no: true,
+                        building: true,
+                        home: true,
+                        street: true,
+                        country: true,
+                        post_code: true,
+                        default: true
+                    },
+                    skip: Number(skip),
+                    take: Number(limit),
+                }),
+                this.prisma.address.count({
+                    where: {
+                        ...filterConditions
+                    },
+                }),
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { address, totalPages, page };
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async forceLogoutUser(id) {
+        try {
+            const data = await this.prisma.customer.update({
+                where: { id },
+                data: {
+                    device_token: null,
+                    googleToken: null
+                }
+            });
+            if (data) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async softDeleteCustomer(id, actionUser) {
+        try {
+            const data = await this.prisma.customer.update({
+                where: { id },
+                data: {
+                    delete_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
+                    delete_by: actionUser.user_id
+                }
+            });
+            if (!data) {
+                return false;
+            }
+            return true;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async restoreCustomer(id, actionUser) {
+        try {
+            const data = await this.prisma.customer.update({
+                where: { id },
+                data: {
+                    delete_time: null,
+                    delete_by: null,
+                    update_by: actionUser.user_id,
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET)
+                },
+            });
+            if (!data) {
+                return false;
+            }
+            return true;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async updateGeneralInformation(id, paginationDto) {
+        try {
+            const usernameExists = await this.isUsernameExistsForOtherCustomers(paginationDto.user_name, id);
+            if (usernameExists && !paginationDto.is_delete_avatar) {
+                throw new Error('Username already exists.');
+            }
+            var data = {
+                user_name: paginationDto.user_name,
+                name: paginationDto.name,
+                action_user: paginationDto.actionUser,
+                mobile: paginationDto.mobile,
+                is_delete_avatar: paginationDto.is_delete_avatar
+            };
+            return data;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async isUsernameExistsForOtherCustomers(username, currentCustomerId) {
+        const existingUser = await this.prisma.customer.findFirst({
+            where: {
+                user_name: username,
+                NOT: {
+                    id: currentCustomerId,
+                },
+            },
+        });
+        return !!existingUser;
+    }
 };
-exports.FixelistService = FixelistService;
-exports.FixelistService = FixelistService = __decorate([
+exports.CustomerService = CustomerService;
+exports.CustomerService = CustomerService = __decorate([
     (0, common_1.Injectable)({}),
     __metadata("design:paramtypes", [typeof (_a = typeof prisma_service_1.PrismaService !== "undefined" && prisma_service_1.PrismaService) === "function" ? _a : Object])
-], FixelistService);
+], CustomerService);
 
 
 /***/ })
@@ -250,7 +383,7 @@ exports.runtime =
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ /* webpack/runtime/getFullHash */
 /******/ (() => {
-/******/ 	__webpack_require__.h = () => ("35d27245e9bb372660ad")
+/******/ 	__webpack_require__.h = () => ("fa395d0f806b6dc9e78d")
 /******/ })();
 /******/ 
 /******/ }

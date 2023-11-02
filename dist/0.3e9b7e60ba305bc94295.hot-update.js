@@ -338,23 +338,19 @@ let CustomerService = class CustomerService {
             throw error;
         }
     }
-    async updateGeneralInformation(paginationDto) {
+    async updateGeneralInformation(id, paginationDto) {
         try {
-            const usernameExists = await this.isUsernameExistsForOtherCustomers(paginationDto.user_name, paginationDto.id);
+            const usernameExists = await this.isUsernameExistsForOtherCustomers(paginationDto.user_name, id);
             if (usernameExists && !paginationDto.is_delete_avatar) {
                 throw new Error("Username already exists.");
             }
-            const data = await this.prisma.customer.update({
-                where: {
-                    id: paginationDto.id,
-                },
-                data: {
-                    name: paginationDto.name,
-                    user_name: paginationDto.user_name,
-                    mobile_number: paginationDto.mobile,
-                    avatar: paginationDto.is_delete_avatar ? '' : undefined,
-                },
-            });
+            var data = {
+                user_name: paginationDto.user_name,
+                name: paginationDto.name,
+                action_user: paginationDto.actionUser,
+                mobile: paginationDto.mobile,
+                is_delete_avatar: paginationDto.is_delete_avatar
+            };
             return data;
         }
         catch (error) {
@@ -387,7 +383,7 @@ exports.runtime =
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ /* webpack/runtime/getFullHash */
 /******/ (() => {
-/******/ 	__webpack_require__.h = () => ("241339ee1293b95bade0")
+/******/ 	__webpack_require__.h = () => ("fea02a91aa3e29750631")
 /******/ })();
 /******/ 
 /******/ }

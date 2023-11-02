@@ -60,4 +60,30 @@ export class FixelistController {
             return new ResponseData<any>(null, HttpStatus.ERROR, HttpMessage.ERROR)
         }
     }
+
+    @Get('/:id/payment')
+    async getCustomerPayment(
+        @Param('id') id: number,
+        @Query() paginationDto: PaginationDto
+    ) {
+        try {
+            const payment = await this.fixelistService.getPayment(id, paginationDto)
+            return new ResponseData<{any, totalPages: number, page: number}>(payment, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            return new ResponseData<any>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+        }
+    }
+
+    @Get('/:id/workers')
+    async getWorkers(
+        @Param('id') id: number,
+        @Query() paginationDto: PaginationDto
+    ) {
+        try {
+            const payment = await this.fixelistService.getWorkers(id, paginationDto)
+            return new ResponseData<{any, totalPages: number, page: number}>(payment, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            return new ResponseData<any>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+        }
+    }
 }

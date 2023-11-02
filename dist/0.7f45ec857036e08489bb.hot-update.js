@@ -195,7 +195,7 @@ let CustomerService = class CustomerService {
                 this.prisma.review.count({
                     where: {
                         delete_time: null,
-                        insert_by: id
+                        customer_id: id
                     },
                 }),
             ]);
@@ -338,24 +338,31 @@ let CustomerService = class CustomerService {
             throw error;
         }
     }
-    async updateGeneralInformation(paginationDto) {
+    async updateGeneralInformation(id, paginationDto) {
         try {
-            const usernameExists = await this.isUsernameExistsForOtherCustomers(paginationDto.user_name, paginationDto.id);
+            const usernameExists = await this.isUsernameExistsForOtherCustomers(paginationDto.user_name, id);
             if (usernameExists && !paginationDto.is_delete_avatar) {
-                throw new Error("Username already exists.");
+                throw new Error('Username already exists.');
             }
-            const data = await this.prisma.customer.update({
+            var data = await this.prisma.customer.update({
                 where: {
-                    id: paginationDto.id,
+                    id: id,
                 },
                 data: {
                     name: paginationDto.name,
                     user_name: paginationDto.user_name,
                     mobile_number: paginationDto.mobile,
                     avatar: paginationDto.is_delete_avatar ? '' : undefined,
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
+                    update_by: paginationDto.actionUser
                 },
             });
-            return data;
+            if (data) {
+                return true;
+            }
+            else {
+                return false;
+            }
         }
         catch (error) {
             throw error;
@@ -387,7 +394,7 @@ exports.runtime =
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ /* webpack/runtime/getFullHash */
 /******/ (() => {
-/******/ 	__webpack_require__.h = () => ("d848564fdeb33a675177")
+/******/ 	__webpack_require__.h = () => ("ed7df44d777c0f693109")
 /******/ })();
 /******/ 
 /******/ }
