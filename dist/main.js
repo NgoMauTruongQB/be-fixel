@@ -2113,7 +2113,7 @@ let CustomerService = class CustomerService {
                 this.prisma.review.findMany({
                     where: {
                         delete_time: null,
-                        insert_by: id
+                        customer_id: id
                     },
                     select: {
                         job_id: true,
@@ -2127,7 +2127,7 @@ let CustomerService = class CustomerService {
                 this.prisma.review.count({
                     where: {
                         delete_time: null,
-                        insert_by: id
+                        customer_id: id
                     },
                 }),
             ]);
@@ -2609,7 +2609,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c;
+var _a, _b, _c, _d, _e, _f, _g, _h;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FixelistController = void 0;
 const common_1 = __webpack_require__(6);
@@ -2630,6 +2630,33 @@ let FixelistController = class FixelistController {
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
         }
     }
+    async getGeneralInformation(id) {
+        try {
+            const data = await this.fixelistService.getGeneralInformation(id);
+            return new globalClass_1.ResponseData(data, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async getJobs(id, paginationDto) {
+        try {
+            const job = await this.fixelistService.getJob(id, paginationDto);
+            return new globalClass_1.ResponseData(job, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async getReviews(id, paginationDto) {
+        try {
+            const reviews = await this.fixelistService.getReviews(id, paginationDto);
+            return new globalClass_1.ResponseData(reviews, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
 };
 exports.FixelistController = FixelistController;
 __decorate([
@@ -2639,6 +2666,29 @@ __decorate([
     __metadata("design:paramtypes", [typeof (_b = typeof fixelist_dto_1.PaginationFixelistDto !== "undefined" && fixelist_dto_1.PaginationFixelistDto) === "function" ? _b : Object]),
     __metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
 ], FixelistController.prototype, "getFixelist", null);
+__decorate([
+    (0, common_1.Get)('/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
+], FixelistController.prototype, "getGeneralInformation", null);
+__decorate([
+    (0, common_1.Get)('/:id/job'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_e = typeof fixelist_dto_1.PaginationDto !== "undefined" && fixelist_dto_1.PaginationDto) === "function" ? _e : Object]),
+    __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
+], FixelistController.prototype, "getJobs", null);
+__decorate([
+    (0, common_1.Get)('/:id/reviews'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_g = typeof fixelist_dto_1.PaginationDto !== "undefined" && fixelist_dto_1.PaginationDto) === "function" ? _g : Object]),
+    __metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
+], FixelistController.prototype, "getReviews", null);
 exports.FixelistController = FixelistController = __decorate([
     (0, common_1.Controller)('/api/fixelist'),
     __metadata("design:paramtypes", [typeof (_a = typeof fixelist_service_1.FixelistService !== "undefined" && fixelist_service_1.FixelistService) === "function" ? _a : Object])
@@ -2720,6 +2770,165 @@ let FixelistService = class FixelistService {
             throw error;
         }
     }
+    async getGeneralInformation(id) {
+        try {
+            const handyman = await this.prisma.handyman.findUnique({
+                where: {
+                    delete_time: null,
+                    id,
+                },
+                select: {
+                    id: true,
+                    status: true,
+                    role: true,
+                    avatar: true,
+                    user_name: true,
+                    email: true,
+                    review: true,
+                    name: true,
+                    mobile_number: true,
+                    approve_time: true,
+                    services: true,
+                    address: true,
+                    gst: true,
+                    uen: true,
+                    recipient: {
+                        where: { delete_time: null },
+                        select: {
+                            bank_name: true,
+                            bank_number: true,
+                            bank_brand: true,
+                            insert_time: true,
+                        }
+                    }
+                }
+            });
+            return handyman;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async getJob(id, paginationDto) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
+        try {
+            const filterConditions = {
+                delete_time: null,
+                handyman_id: id,
+            };
+            const jobs = await this.prisma.job.findMany({
+                where: filterConditions,
+                select: {
+                    id: true,
+                    code: true,
+                    status: true,
+                    customer: { select: { id: true, user_name: true } },
+                    handyman_job_worker_idTohandyman: {
+                        select: {
+                            id: true,
+                            name: true,
+                        },
+                    },
+                    insert_time: true,
+                    schedule_time: true,
+                    complete_time: true,
+                    paid_amount: true,
+                    payment: {
+                        select: {
+                            penalty: true
+                        }
+                    },
+                    payment_fixelist_time: true,
+                    payment_status: true,
+                },
+                skip: Number(skip),
+                take: Number(limit),
+            });
+            const jobsWithTotals = jobs.map((job) => {
+                const totalPenalty = job.payment.reduce((total, payment) => total + (payment.penalty || 0), 0);
+                const { payment, ...jobWithoutPayment } = job;
+                return {
+                    ...jobWithoutPayment,
+                    totalPenalty,
+                };
+            });
+            const totalPages = Math.ceil(jobsWithTotals.length / limit);
+            return { jobs: jobsWithTotals, totalPages, page };
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async getReviews(id, paginationDto) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
+        try {
+            const [reviews, totalCount] = await Promise.all([
+                this.prisma.review.findMany({
+                    where: {
+                        delete_time: null,
+                        handyman_id: id
+                    },
+                    select: {
+                        job_id: true,
+                        job_code: true,
+                        star_for_customer: true,
+                        content_for_customer: true
+                    },
+                    skip: Number(skip),
+                    take: Number(limit),
+                }),
+                this.prisma.review.count({
+                    where: {
+                        delete_time: null,
+                        handyman_id: id
+                    },
+                }),
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { reviews, totalPages, page };
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async getPayment(id, paginationDto) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
+        try {
+            const filterConditions = {
+                delete_time: null,
+                customer_id: id
+            };
+            const [payments, totalCount] = await Promise.all([
+                this.prisma.payment.findMany({
+                    where: filterConditions,
+                    select: {
+                        id: true,
+                        insert_time: true,
+                        charge_id: true,
+                        job_code: true,
+                        type: true,
+                        status: true,
+                        amount: true,
+                    },
+                    skip: Number(skip),
+                    take: Number(limit),
+                }),
+                this.prisma.payment.count({
+                    where: {
+                        ...filterConditions
+                    },
+                }),
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { payments, totalPages, page };
+        }
+        catch (error) {
+            throw error;
+        }
+    }
 };
 exports.FixelistService = FixelistService;
 exports.FixelistService = FixelistService = __decorate([
@@ -2745,7 +2954,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PaginationFixelistDto = void 0;
+exports.ReviewDto = exports.PaginationDto = exports.PaginationFixelistDto = void 0;
 const class_transformer_1 = __webpack_require__(18);
 const class_validator_1 = __webpack_require__(17);
 class PaginationFixelistDto {
@@ -2791,6 +3000,26 @@ __decorate([
     (0, class_transformer_1.Transform)(({ value }) => new Date(value), { toClassOnly: true }),
     __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
 ], PaginationFixelistDto.prototype, "endDate", void 0);
+class PaginationDto {
+}
+exports.PaginationDto = PaginationDto;
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationDto.prototype, "page", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationDto.prototype, "limit", void 0);
+class ReviewDto {
+}
+exports.ReviewDto = ReviewDto;
 
 
 /***/ }),
@@ -2862,7 +3091,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("9a09118afac0b9e77919")
+/******/ 		__webpack_require__.h = () => ("96b31a43ebbdefd849e0")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */

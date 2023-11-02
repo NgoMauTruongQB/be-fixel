@@ -1,42 +1,52 @@
-import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
-import { PaginationDto, PaginationFixelistDto, ReviewDto } from 'src/admin/dto/fixelist.dto'
-import { job } from '@prisma/client'
+"use strict";
+exports.id = 0;
+exports.ids = null;
+exports.modules = {
 
-@Injectable({})
-export class FixelistService {
-
-    constructor(private prisma: PrismaService){}
-
-    async getFixelist(paginationDto: PaginationFixelistDto): Promise<any>{
-        const { page = 1, limit = 9, email, username, status, startDate, endDate  } = paginationDto
-        const skip = (page - 1) * limit
+/***/ 25:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FixelistService = void 0;
+const common_1 = __webpack_require__(6);
+const prisma_service_1 = __webpack_require__(10);
+let FixelistService = class FixelistService {
+    constructor(prisma) {
+        this.prisma = prisma;
+    }
+    async getFixelist(paginationDto) {
+        const { page = 1, limit = 9, email, username, status, startDate, endDate } = paginationDto;
+        const skip = (page - 1) * limit;
         try {
-            const filterConditions: Record<string, any> = {
+            const filterConditions = {
                 delete_time: null,
-            }
-        
+            };
             if (username) {
-                filterConditions.user_name = username
+                filterConditions.user_name = username;
             }
-        
             if (email) {
-                filterConditions.email = email
+                filterConditions.email = email;
             }
-        
             if (status) {
-                filterConditions.status = status
+                filterConditions.status = status;
             }
-
             if (startDate && endDate) {
                 filterConditions.insert_time = {
                     gte: startDate,
                     lte: endDate,
-                }
+                };
             }
-
             const [fixelist, totalCount] = await Promise.all([
                 this.prisma.handyman.findMany({
                     where: filterConditions,
@@ -58,17 +68,15 @@ export class FixelistService {
                         ...filterConditions
                     },
                 }),
-            ])
-
-            const totalPages = Math.ceil(totalCount / limit)
-
-            return { fixelist, totalPages, page }
-        } catch (error) {
-            throw error
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { fixelist, totalPages, page };
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async getGeneralInformation(id: number): Promise<any> {
+    async getGeneralInformation(id) {
         try {
             const handyman = await this.prisma.handyman.findUnique({
                 where: {
@@ -100,24 +108,21 @@ export class FixelistService {
                         }
                     }
                 }
-            })
-
-            return handyman
-        } catch (error) {
-            throw error
+            });
+            return handyman;
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async getJob(id: number, paginationDto: PaginationDto): Promise<any> {
-        const { page = 1, limit = 9 } = paginationDto
-        const skip = (page - 1) * limit
-
+    async getJob(id, paginationDto) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
         try {
-            const filterConditions: Record<string, any> = {
+            const filterConditions = {
                 delete_time: null,
                 handyman_id: id,
-            }
-
+            };
             const jobs = await this.prisma.job.findMany({
                 where: filterConditions,
                 select: {
@@ -142,49 +147,40 @@ export class FixelistService {
                     },
                     payment_fixelist_time: true,
                     payment_status: true,
-
                 },
                 skip: Number(skip),
                 take: Number(limit),
-            })
-
+            });
             const jobsWithTotals = jobs.map((job) => {
-                const totalPenalty = job.payment.reduce(
-                    (total, payment) => total + (payment.penalty || 0),
-                    0
-                )
-                const { payment, ...jobWithoutPayment } = job
+                const totalPenalty = job.payment.reduce((total, payment) => total + (payment.penalty || 0), 0);
+                const { payment, ...jobWithoutPayment } = job;
                 return {
                     ...jobWithoutPayment,
                     totalPenalty,
-                }
-            })
-
-            const totalPages = Math.ceil(jobsWithTotals.length / limit)
-
-            return { jobs: jobsWithTotals, totalPages, page }
-
-        } catch (error) {
-            throw error
+                };
+            });
+            const totalPages = Math.ceil(jobsWithTotals.length / limit);
+            return { jobs: jobsWithTotals, totalPages, page };
+        }
+        catch (error) {
+            throw error;
         }
     }
-
-    async getReviews(id: number, paginationDto: PaginationDto): Promise<{ reviews: ReviewDto[], totalPages: number, page: number }> {
-        const { page = 1, limit = 9 } = paginationDto
-        const skip = (page - 1) * limit
-    
+    async getReviews(id, paginationDto) {
+        const { page = 1, limit = 9 } = paginationDto;
+        const skip = (page - 1) * limit;
         try {
             const [reviews, totalCount] = await Promise.all([
                 this.prisma.review.findMany({
                     where: {
                         delete_time: null,
-                        handyman_id: id
+                        insert_by: id
                     },
                     select: {
                         job_id: true,
                         job_code: true,
                         star_for_customer: true,
-                        content_for_customer: true
+                        content_for_handyman: true
                     },
                     skip: Number(skip),
                     take: Number(limit),
@@ -192,57 +188,34 @@ export class FixelistService {
                 this.prisma.review.count({
                     where: {
                         delete_time: null,
-                        handyman_id: id
+                        insert_by: id
                     },
                 }),
-            ])
-    
-            const totalPages = Math.ceil(totalCount / limit)
-    
-            return { reviews, totalPages, page }
-        } catch (error) {
-            throw error
+            ]);
+            const totalPages = Math.ceil(totalCount / limit);
+            return { reviews, totalPages, page };
+        }
+        catch (error) {
+            throw error;
         }
     }
+};
+exports.FixelistService = FixelistService;
+exports.FixelistService = FixelistService = __decorate([
+    (0, common_1.Injectable)({}),
+    __metadata("design:paramtypes", [typeof (_a = typeof prisma_service_1.PrismaService !== "undefined" && prisma_service_1.PrismaService) === "function" ? _a : Object])
+], FixelistService);
 
-    async getPayment(id: number, paginationDto: PaginationDto): Promise<any> {
-        const { page = 1, limit = 9 } = paginationDto
-        const skip = (page - 1) * limit
 
-        try {
+/***/ })
 
-            const filterConditions: Record<string, any> = {
-                delete_time: null,
-                customer_id: id
-            }
-        
-            const [payments, totalCount] = await Promise.all([
-                this.prisma.payment.findMany({
-                    where: filterConditions,
-                    select: {
-                        id: true,
-                        insert_time: true,
-                        charge_id: true,
-                        job_code: true,
-                        type: true,
-                        status: true,
-                        amount: true,
-                    },
-                    skip: Number(skip),
-                    take: Number(limit),
-                }),
-                this.prisma.payment.count({
-                    where: {
-                        ...filterConditions
-                    },
-                }),
-            ])
-
-            const totalPages = Math.ceil(totalCount / limit)
-
-            return { payments, totalPages, page }
-        } catch (error) {
-            throw error
-        }
-    }
-}
+};
+exports.runtime =
+/******/ function(__webpack_require__) { // webpackRuntimeModules
+/******/ /* webpack/runtime/getFullHash */
+/******/ (() => {
+/******/ 	__webpack_require__.h = () => ("2ef4291573f22a66ecd3")
+/******/ })();
+/******/ 
+/******/ }
+;

@@ -18,7 +18,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PaginationFixelistDto = void 0;
+exports.ReviewDto = exports.PaginationDto = exports.PaginationFixelistDto = void 0;
 const class_transformer_1 = __webpack_require__(18);
 const class_validator_1 = __webpack_require__(17);
 class PaginationFixelistDto {
@@ -53,7 +53,7 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
     __metadata("design:type", Number)
-], PaginationFixelistDto.prototype, "service", void 0);
+], PaginationFixelistDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Transform)(({ value }) => new Date(value), { toClassOnly: true }),
@@ -64,6 +64,26 @@ __decorate([
     (0, class_transformer_1.Transform)(({ value }) => new Date(value), { toClassOnly: true }),
     __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
 ], PaginationFixelistDto.prototype, "endDate", void 0);
+class PaginationDto {
+}
+exports.PaginationDto = PaginationDto;
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationDto.prototype, "page", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value, 10), { toClassOnly: true }),
+    __metadata("design:type", Number)
+], PaginationDto.prototype, "limit", void 0);
+class ReviewDto {
+}
+exports.ReviewDto = ReviewDto;
 
 
 /***/ })
@@ -73,7 +93,7 @@ exports.runtime =
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ /* webpack/runtime/getFullHash */
 /******/ (() => {
-/******/ 	__webpack_require__.h = () => ("ca5f952d3d3eb5cbddde")
+/******/ 	__webpack_require__.h = () => ("de7c64045863be649ab2")
 /******/ })();
 /******/ 
 /******/ }

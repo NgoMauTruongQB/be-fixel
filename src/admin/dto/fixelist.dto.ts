@@ -36,3 +36,24 @@ export class PaginationFixelistDto {
     endDate: Date
 }
 
+export class PaginationDto {
+    @IsOptional()
+    @IsInt()
+    @Min(1)
+    @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
+    page: number
+
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    @Transform(({ value }: TransformFnParams) => parseInt(value, 10), { toClassOnly: true })
+    limit: number
+}
+
+export class ReviewDto {
+    job_id: number
+    job_code: string
+    star_for_customer: number
+    content_for_customer: string
+}
+
