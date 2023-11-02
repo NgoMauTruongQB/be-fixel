@@ -1,5 +1,5 @@
 import { Transform, TransformFnParams } from "class-transformer"
-import { IsEmail, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator"
+import { IsArray, IsBoolean, IsEmail, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator"
 
 export class PaginationFixelistDto {
     @IsOptional()
@@ -55,5 +55,42 @@ export class ReviewDto {
     job_code: string
     star_for_customer: number
     content_for_customer: string
+}
+
+export class GeneralInformationDto {
+    @IsNotEmpty()
+    @IsString()
+    user_name?: string
+
+    @IsOptional()
+    @IsString()
+    company_name?: string
+
+    @IsOptional()
+    @IsString()
+    mobile?: string
+
+    @IsNotEmpty()
+    @IsBoolean()
+    is_delete_avatar?: boolean
+
+    @IsNotEmpty()
+    actionUser?: number
+
+    @IsOptional()
+    company_address?: string
+
+    @IsOptional()
+    @IsString()
+    uen_number?: string
+
+    @IsOptional()
+    @IsString()
+    gst_number?: string
+
+    @IsNotEmpty()
+    @IsArray()
+    services?: Array<number>
+
 }
 

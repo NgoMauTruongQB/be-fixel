@@ -2288,12 +2288,7 @@ let CustomerService = class CustomerService {
                     update_by: paginationDto.actionUser
                 },
             });
-            if (data) {
-                return true;
-            }
-            else {
-                return false;
-            }
+            return data ? true : false;
         }
         catch (error) {
             throw error;
@@ -2610,7 +2605,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FixelistController = void 0;
 const common_1 = __webpack_require__(6);
@@ -2676,6 +2671,15 @@ let FixelistController = class FixelistController {
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
         }
     }
+    async updateGeneralInformation(id, paginationDto) {
+        try {
+            const data = await this.fixelistService.updateGeneralInformation(id, paginationDto);
+            return new globalClass_1.ResponseData(data, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, error.message);
+        }
+    }
 };
 exports.FixelistController = FixelistController;
 __decorate([
@@ -2724,6 +2728,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, typeof (_k = typeof fixelist_dto_1.PaginationDto !== "undefined" && fixelist_dto_1.PaginationDto) === "function" ? _k : Object]),
     __metadata("design:returntype", Promise)
 ], FixelistController.prototype, "getWorkers", null);
+__decorate([
+    (0, common_1.Put)('/information/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_l = typeof fixelist_dto_1.GeneralInformationDto !== "undefined" && fixelist_dto_1.GeneralInformationDto) === "function" ? _l : Object]),
+    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
+], FixelistController.prototype, "updateGeneralInformation", null);
 exports.FixelistController = FixelistController = __decorate([
     (0, common_1.Controller)('/api/fixelist'),
     __metadata("design:paramtypes", [typeof (_a = typeof fixelist_service_1.FixelistService !== "undefined" && fixelist_service_1.FixelistService) === "function" ? _a : Object])
@@ -2750,6 +2762,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FixelistService = void 0;
 const common_1 = __webpack_require__(6);
 const prisma_service_1 = __webpack_require__(10);
+const timezone_utility_1 = __webpack_require__(12);
 let FixelistService = class FixelistService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -3002,6 +3015,47 @@ let FixelistService = class FixelistService {
             throw error;
         }
     }
+    async updateGeneralInformation(id, paginationDto) {
+        try {
+            const usernameExists = await this.isUsernameExistsForOtherHandyman(paginationDto.user_name, id);
+            if (usernameExists && !paginationDto.is_delete_avatar) {
+                throw new Error('Username already exists.');
+            }
+            var data = await this.prisma.handyman.update({
+                where: {
+                    id: id,
+                },
+                data: {
+                    name: paginationDto.company_name,
+                    user_name: paginationDto.user_name,
+                    mobile_number: paginationDto.mobile,
+                    avatar: paginationDto.is_delete_avatar ? '' : undefined,
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
+                    update_by: paginationDto.actionUser,
+                    address: paginationDto.company_address,
+                    uen: paginationDto.uen_number,
+                    gst: paginationDto.gst_number,
+                    services: paginationDto.services
+                },
+            });
+            return data ? true : false;
+        }
+        catch (error) {
+            console.log(error);
+            throw error;
+        }
+    }
+    async isUsernameExistsForOtherHandyman(username, currentCustomerId) {
+        const existingUser = await this.prisma.handyman.findFirst({
+            where: {
+                user_name: username,
+                NOT: {
+                    id: currentCustomerId,
+                },
+            },
+        });
+        return !!existingUser;
+    }
 };
 exports.FixelistService = FixelistService;
 exports.FixelistService = FixelistService = __decorate([
@@ -3025,9 +3079,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a, _b;
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ReviewDto = exports.PaginationDto = exports.PaginationFixelistDto = void 0;
+exports.GeneralInformationDto = exports.ReviewDto = exports.PaginationDto = exports.PaginationFixelistDto = void 0;
 const class_transformer_1 = __webpack_require__(18);
 const class_validator_1 = __webpack_require__(17);
 class PaginationFixelistDto {
@@ -3093,6 +3147,52 @@ __decorate([
 class ReviewDto {
 }
 exports.ReviewDto = ReviewDto;
+class GeneralInformationDto {
+}
+exports.GeneralInformationDto = GeneralInformationDto;
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GeneralInformationDto.prototype, "user_name", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GeneralInformationDto.prototype, "company_name", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GeneralInformationDto.prototype, "mobile", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], GeneralInformationDto.prototype, "is_delete_avatar", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Number)
+], GeneralInformationDto.prototype, "actionUser", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], GeneralInformationDto.prototype, "company_address", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GeneralInformationDto.prototype, "uen_number", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GeneralInformationDto.prototype, "gst_number", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsArray)(),
+    __metadata("design:type", typeof (_c = typeof Array !== "undefined" && Array) === "function" ? _c : Object)
+], GeneralInformationDto.prototype, "services", void 0);
 
 
 /***/ }),
@@ -3164,7 +3264,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("e602815e1d80b4fd46a6")
+/******/ 		__webpack_require__.h = () => ("898d526fe4f378ecfd60")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */

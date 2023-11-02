@@ -383,11 +383,7 @@ export class CustomerService {
                 },
             })
 
-            if(data) {
-                return true
-            } else {
-                return false
-            }
+            return data ? true : false
         } catch (error) {
             throw error
         }

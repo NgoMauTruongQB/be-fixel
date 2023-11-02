@@ -1,6 +1,6 @@
-import { Controller, Get, Param, Query } from '@nestjs/common'
+import { Body, Controller, Get, Param, Put, Query } from '@nestjs/common'
 import { FixelistService } from './fixelist.service';
-import { PaginationDto, PaginationFixelistDto, ReviewDto } from 'src/admin/dto/fixelist.dto';
+import { GeneralInformationDto, PaginationDto, PaginationFixelistDto, ReviewDto } from 'src/admin/dto/fixelist.dto';
 import { ResponseData } from 'src/admin/global/globalClass';
 import { HttpMessage, HttpStatus } from 'src/admin/global/globalEnum';
 import { job } from '@prisma/client';
@@ -84,6 +84,19 @@ export class FixelistController {
             return new ResponseData<{any, totalPages: number, page: number}>(payment, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
         } catch (error) {
             return new ResponseData<any>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+        }
+    }
+
+    @Put('/information/:id')
+    async updateGeneralInformation(
+        @Param('id') id: number,
+        @Body() paginationDto: GeneralInformationDto
+    ): Promise<ResponseData<boolean>> {
+        try {
+            const data = await this.fixelistService.updateGeneralInformation(id, paginationDto)
+            return new ResponseData<any>(data, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            return new ResponseData<any>(null, HttpStatus.ERROR, error.message)
         }
     }
 }

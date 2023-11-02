@@ -3,7 +3,7 @@ exports.id = 0;
 exports.ids = null;
 exports.modules = {
 
-/***/ 21:
+/***/ 25:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -18,19 +18,21 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CustomerService = void 0;
+exports.FixelistService = void 0;
 const common_1 = __webpack_require__(6);
 const prisma_service_1 = __webpack_require__(10);
 const timezone_utility_1 = __webpack_require__(12);
-let CustomerService = class CustomerService {
+let FixelistService = class FixelistService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async getCustomers(paginationDto) {
-        const { page = 1, limit = 9, username, email, status, startDate, endDate } = paginationDto;
+    async getFixelist(paginationDto) {
+        const { page = 1, limit = 9, email, username, status, startDate, endDate } = paginationDto;
         const skip = (page - 1) * limit;
         try {
-            const filterConditions = {};
+            const filterConditions = {
+                delete_time: null,
+            };
             if (username) {
                 filterConditions.user_name = username;
             }
@@ -41,36 +43,35 @@ let CustomerService = class CustomerService {
                 filterConditions.status = status;
             }
             if (startDate && endDate) {
-                filterConditions.activate_time = {
+                filterConditions.insert_time = {
                     gte: startDate,
                     lte: endDate,
                 };
             }
-            const [customers, totalCount] = await Promise.all([
-                this.prisma.customer.findMany({
+            const [fixelist, totalCount] = await Promise.all([
+                this.prisma.handyman.findMany({
                     where: filterConditions,
                     select: {
                         id: true,
                         user_name: true,
                         name: true,
                         email: true,
+                        role: true,
                         status: true,
                         insert_time: true,
-                        activate_time: true,
-                        avatar: true,
-                        delete_time: true
+                        approve_time: true
                     },
                     skip: Number(skip),
                     take: Number(limit),
                 }),
-                this.prisma.customer.count({
+                this.prisma.handyman.count({
                     where: {
-                        ...filterConditions,
+                        ...filterConditions
                     },
                 }),
             ]);
             const totalPages = Math.ceil(totalCount / limit);
-            return { customers, totalPages, page };
+            return { fixelist, totalPages, page };
         }
         catch (error) {
             throw error;
@@ -78,7 +79,7 @@ let CustomerService = class CustomerService {
     }
     async getGeneralInformation(id) {
         try {
-            const customer = await this.prisma.customer.findUnique({
+            const handyman = await this.prisma.handyman.findUnique({
                 where: {
                     delete_time: null,
                     id,
@@ -86,29 +87,30 @@ let CustomerService = class CustomerService {
                 select: {
                     id: true,
                     status: true,
+                    role: true,
                     avatar: true,
                     user_name: true,
                     email: true,
+                    review: true,
                     name: true,
                     mobile_number: true,
-                    activate_time: true,
+                    approve_time: true,
+                    services: true,
+                    address: true,
+                    gst: true,
+                    uen: true,
+                    recipient: {
+                        where: { delete_time: null },
+                        select: {
+                            bank_name: true,
+                            bank_number: true,
+                            bank_brand: true,
+                            insert_time: true,
+                        }
+                    }
                 }
             });
-            if (customer) {
-                const payments = await this.prisma.payment.findMany({
-                    where: { id },
-                    select: { amount: true }
-                });
-                const totalAmount = payments.reduce((total, payment) => total + payment.amount, 0);
-                const data = {
-                    ...customer,
-                    totalAmount
-                };
-                return data;
-            }
-            else {
-                return null;
-            }
+            return handyman;
         }
         catch (error) {
             throw error;
@@ -120,7 +122,7 @@ let CustomerService = class CustomerService {
         try {
             const filterConditions = {
                 delete_time: null,
-                customer_id: id,
+                handyman_id: id,
             };
             const jobs = await this.prisma.job.findMany({
                 where: filterConditions,
@@ -128,12 +130,7 @@ let CustomerService = class CustomerService {
                     id: true,
                     code: true,
                     status: true,
-                    handyman_job_handyman_idTohandyman: {
-                        select: {
-                            id: true,
-                            name: true,
-                        },
-                    },
+                    customer: { select: { id: true, user_name: true } },
                     handyman_job_worker_idTohandyman: {
                         select: {
                             id: true,
@@ -144,25 +141,22 @@ let CustomerService = class CustomerService {
                     schedule_time: true,
                     complete_time: true,
                     paid_amount: true,
-                    payment_status: true,
                     payment: {
                         select: {
-                            penalty: true,
-                            refunded_amount: true,
-                        },
+                            penalty: true
+                        }
                     },
-                    update_time: true,
+                    payment_fixelist_time: true,
+                    payment_status: true,
                 },
                 skip: Number(skip),
                 take: Number(limit),
             });
             const jobsWithTotals = jobs.map((job) => {
-                const totalRefundedAmount = job.payment.reduce((total, payment) => total + (payment.refunded_amount || 0), 0);
                 const totalPenalty = job.payment.reduce((total, payment) => total + (payment.penalty || 0), 0);
                 const { payment, ...jobWithoutPayment } = job;
                 return {
                     ...jobWithoutPayment,
-                    totalRefundedAmount,
                     totalPenalty,
                 };
             });
@@ -181,13 +175,13 @@ let CustomerService = class CustomerService {
                 this.prisma.review.findMany({
                     where: {
                         delete_time: null,
-                        customer_id: id
+                        handyman_id: id
                     },
                     select: {
                         job_id: true,
                         job_code: true,
-                        star_for_handyman: true,
-                        content_for_handyman: true
+                        star_for_customer: true,
+                        content_for_customer: true
                     },
                     skip: Number(skip),
                     take: Number(limit),
@@ -195,7 +189,7 @@ let CustomerService = class CustomerService {
                 this.prisma.review.count({
                     where: {
                         delete_time: null,
-                        customer_id: id
+                        handyman_id: id
                     },
                 }),
             ]);
@@ -212,7 +206,7 @@ let CustomerService = class CustomerService {
         try {
             const filterConditions = {
                 delete_time: null,
-                customer_id: id
+                handyman_id: id
             };
             const [payments, totalCount] = await Promise.all([
                 this.prisma.payment.findMany({
@@ -242,97 +236,39 @@ let CustomerService = class CustomerService {
             throw error;
         }
     }
-    async getAddress(id, paginationDto) {
+    async getWorkers(id, paginationDto) {
         const { page = 1, limit = 9 } = paginationDto;
         const skip = (page - 1) * limit;
         try {
             const filterConditions = {
                 delete_time: null,
-                customer_id: id
+                id
             };
-            const [address, totalCount] = await Promise.all([
-                this.prisma.address.findMany({
+            const [payments, totalCount] = await Promise.all([
+                this.prisma.handyman.findMany({
                     where: filterConditions,
                     select: {
-                        id: true,
-                        floor: true,
-                        unit_no: true,
-                        building: true,
-                        home: true,
-                        street: true,
-                        country: true,
-                        post_code: true,
-                        default: true
+                        other_handyman: {
+                            select: {
+                                user_name: true,
+                                email: true,
+                                mobile_number: true,
+                                status: true,
+                                approve_time: true
+                            }
+                        }
                     },
                     skip: Number(skip),
                     take: Number(limit),
                 }),
-                this.prisma.address.count({
+                this.prisma.payment.count({
                     where: {
                         ...filterConditions
                     },
                 }),
             ]);
             const totalPages = Math.ceil(totalCount / limit);
-            return { address, totalPages, page };
-        }
-        catch (error) {
-            throw error;
-        }
-    }
-    async forceLogoutUser(id) {
-        try {
-            const data = await this.prisma.customer.update({
-                where: { id },
-                data: {
-                    device_token: null,
-                    googleToken: null
-                }
-            });
-            if (data) {
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-        catch (error) {
-            throw error;
-        }
-    }
-    async softDeleteCustomer(id, actionUser) {
-        try {
-            const data = await this.prisma.customer.update({
-                where: { id },
-                data: {
-                    delete_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
-                    delete_by: actionUser.user_id
-                }
-            });
-            if (!data) {
-                return false;
-            }
-            return true;
-        }
-        catch (error) {
-            throw error;
-        }
-    }
-    async restoreCustomer(id, actionUser) {
-        try {
-            const data = await this.prisma.customer.update({
-                where: { id },
-                data: {
-                    delete_time: null,
-                    delete_by: null,
-                    update_by: actionUser.user_id,
-                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET)
-                },
-            });
-            if (!data) {
-                return false;
-            }
-            return true;
+            return { payments, totalPages, page };
         }
         catch (error) {
             throw error;
@@ -340,25 +276,36 @@ let CustomerService = class CustomerService {
     }
     async updateGeneralInformation(id, paginationDto) {
         try {
-            const usernameExists = await this.isUsernameExistsForOtherCustomers(paginationDto.user_name, id);
+            const usernameExists = await this.isUsernameExistsForOtherHandyman(paginationDto.user_name, id);
             if (usernameExists && !paginationDto.is_delete_avatar) {
-                throw new Error("Username already exists.");
+                throw new Error('Username already exists.');
             }
-            var data = {
-                user_name: paginationDto.user_name,
-                name: paginationDto.name,
-                action_user: paginationDto.actionUser,
-                mobile: paginationDto.mobile,
-                is_delete_avatar: paginationDto.is_delete_avatar
-            };
-            return data;
+            var data = await this.prisma.handyman.update({
+                where: {
+                    id: id,
+                },
+                data: {
+                    name: paginationDto.company_name,
+                    user_name: paginationDto.user_name,
+                    mobile_number: paginationDto.mobile,
+                    avatar: paginationDto.is_delete_avatar ? '' : undefined,
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
+                    update_by: paginationDto.actionUser,
+                    address: paginationDto.company_address,
+                    uen: paginationDto.uen_number,
+                    gst: paginationDto.gst_number,
+                    services: paginationDto.services
+                },
+            });
+            return data ? true : false;
         }
         catch (error) {
+            console.log(error);
             throw error;
         }
     }
-    async isUsernameExistsForOtherCustomers(username, currentCustomerId) {
-        const existingUser = await this.prisma.customer.findFirst({
+    async isUsernameExistsForOtherHandyman(username, currentCustomerId) {
+        const existingUser = await this.prisma.handyman.findFirst({
             where: {
                 user_name: username,
                 NOT: {
@@ -369,11 +316,11 @@ let CustomerService = class CustomerService {
         return !!existingUser;
     }
 };
-exports.CustomerService = CustomerService;
-exports.CustomerService = CustomerService = __decorate([
+exports.FixelistService = FixelistService;
+exports.FixelistService = FixelistService = __decorate([
     (0, common_1.Injectable)({}),
     __metadata("design:paramtypes", [typeof (_a = typeof prisma_service_1.PrismaService !== "undefined" && prisma_service_1.PrismaService) === "function" ? _a : Object])
-], CustomerService);
+], FixelistService);
 
 
 /***/ })
@@ -383,7 +330,7 @@ exports.runtime =
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ /* webpack/runtime/getFullHash */
 /******/ (() => {
-/******/ 	__webpack_require__.h = () => ("fea02a91aa3e29750631")
+/******/ 	__webpack_require__.h = () => ("898d526fe4f378ecfd60")
 /******/ })();
 /******/ 
 /******/ }

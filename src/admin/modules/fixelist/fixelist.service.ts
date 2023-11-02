@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import { PaginationDto, PaginationFixelistDto, ReviewDto } from 'src/admin/dto/fixelist.dto'
+import { GeneralInformationDto, PaginationDto, PaginationFixelistDto, ReviewDto } from 'src/admin/dto/fixelist.dto'
 import { job } from '@prisma/client'
 import { SlowBuffer } from 'buffer'
+import { convertToTimeZone } from 'src/shared/timezone.utility'
 
 @Injectable({})
 export class FixelistService {
@@ -288,5 +289,50 @@ export class FixelistService {
         } catch (error) {
             throw error
         }
+    }
+
+    async updateGeneralInformation(id: number, paginationDto: GeneralInformationDto) {
+        try {
+            const usernameExists = await this.isUsernameExistsForOtherHandyman(paginationDto.user_name, id)
+
+            if (usernameExists && !paginationDto.is_delete_avatar) {
+                throw new Error('Username already exists.')
+            }
+
+            var data = await this.prisma.handyman.update({
+                where: {
+                    id: id,
+                },
+                data: {
+                    name: paginationDto.company_name,
+                    user_name: paginationDto.user_name,
+                    mobile_number: paginationDto.mobile,
+                    avatar: paginationDto.is_delete_avatar ? '' : undefined,
+                    update_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
+                    update_by: paginationDto.actionUser,
+                    address: paginationDto.company_address,
+                    uen: paginationDto.uen_number,
+                    gst: paginationDto.gst_number,
+                    services: paginationDto.services
+                },
+            })
+            return data ? true : false
+        } catch (error) {
+            console.log(error)
+            throw error
+        }
+    }
+
+    async isUsernameExistsForOtherHandyman(username: string, currentCustomerId: number): Promise<boolean> {
+        const existingUser = await this.prisma.handyman.findFirst({
+            where: {
+                user_name: username,
+                NOT: {
+                    id: currentCustomerId,
+                },
+            },
+        })
+
+        return !!existingUser
     }
 }
