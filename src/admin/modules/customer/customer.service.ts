@@ -84,7 +84,8 @@ export class CustomerService {
                     email: true,
                     name: true,
                     mobile_number: true,
-                    activate_time: true,                  
+                    activate_time: true,
+                    review: true               
                 }
             })
 
