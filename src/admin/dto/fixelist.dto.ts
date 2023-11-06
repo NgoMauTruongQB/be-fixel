@@ -94,3 +94,8 @@ export class GeneralInformationDto {
 
 }
 
+export class ActionUserDto {
+    @IsNotEmpty()
+    user_id? : number
+}
+

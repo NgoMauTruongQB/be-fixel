@@ -139,4 +139,30 @@ export class CustomerController {
             return new ResponseData<any>(null, HttpStatus.ERROR, error.message)
         }
     }
+
+    @Put('deactivate/:id')
+    async deactivateCustomer(
+        @Param('id') id: number, 
+        @Body() actionUser : ActionUserDto
+    ): Promise<ResponseData<boolean>> {
+        try {
+            const isDelete = await this.customerService.deactivateCustomer(id, actionUser)
+            return new ResponseData<boolean>(isDelete, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            return new ResponseData<boolean>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+        }
+    }
+
+    @Put('activate/:id')
+    async activateCustomer(
+        @Param('id') id: number, 
+        @Body() actionUser : ActionUserDto
+    ): Promise<ResponseData<boolean>> {
+        try {
+            const isDelete = await this.customerService.activateCustomer(id, actionUser)
+            return new ResponseData<boolean>(isDelete, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            return new ResponseData<boolean>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+        }
+    }
 }

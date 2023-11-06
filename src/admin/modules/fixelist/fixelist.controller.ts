@@ -1,9 +1,8 @@
-import { Body, Controller, Get, Param, Put, Query } from '@nestjs/common'
-import { FixelistService } from './fixelist.service';
-import { GeneralInformationDto, PaginationDto, PaginationFixelistDto, ReviewDto } from 'src/admin/dto/fixelist.dto';
-import { ResponseData } from 'src/admin/global/globalClass';
-import { HttpMessage, HttpStatus } from 'src/admin/global/globalEnum';
-import { job } from '@prisma/client';
+import { Body, Controller, Get, Param, Put, Query, Res } from '@nestjs/common'
+import { FixelistService } from './fixelist.service'
+import { ActionUserDto, GeneralInformationDto, PaginationDto, PaginationFixelistDto, ReviewDto } from 'src/admin/dto/fixelist.dto'
+import { ResponseData } from 'src/admin/global/globalClass'
+import { HttpMessage, HttpStatus } from 'src/admin/global/globalEnum'
 
 @Controller('/api/fixelist')
 export class FixelistController {
@@ -97,6 +96,58 @@ export class FixelistController {
             return new ResponseData<any>(data, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
         } catch (error) {
             return new ResponseData<any>(null, HttpStatus.ERROR, error.message)
+        }
+    }
+
+    @Put('soft-delete/:id')
+    async softDeleteHandyman(
+        @Param('id') id: number, 
+        @Body() actionUser : ActionUserDto
+    ): Promise<ResponseData<boolean>> {
+        try {
+            const isDelete = await this.fixelistService.softDelete(id, actionUser)
+            return new ResponseData<boolean>(isDelete, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            return new ResponseData<boolean>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+        }
+    }
+
+    @Put('restore/:id')
+    async restoreHandyman(
+        @Param('id') id: number,
+        @Body() actionUser: ActionUserDto
+    ): Promise<ResponseData<boolean>> {
+        try {
+            const isRestore = await this.fixelistService.restoreHandyman(id, actionUser)
+            return new ResponseData<boolean>(isRestore, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            return new ResponseData<boolean>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+        }
+    }
+
+    @Put('deactivate/:id')
+    async deactivateHanyman(
+        @Param('id') id: number, 
+        @Body() actionUser : ActionUserDto
+    ): Promise<ResponseData<boolean>> {
+        try {
+            const isDelete = await this.fixelistService.deactivateHanyman(id, actionUser)
+            return new ResponseData<boolean>(isDelete, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            return new ResponseData<boolean>(null, HttpStatus.ERROR, HttpMessage.ERROR)
+        }
+    }
+
+    @Put('activate/:id')
+    async activateHanyman(
+        @Param('id') id: number, 
+        @Body() actionUser : ActionUserDto
+    ): Promise<ResponseData<boolean>> {
+        try {
+            const isDelete = await this.fixelistService.activateHanyman(id, actionUser)
+            return new ResponseData<boolean>(isDelete, HttpStatus.SUCCESS, HttpMessage.SUCCESS)
+        } catch (error) {
+            return new ResponseData<boolean>(null, HttpStatus.ERROR, HttpMessage.ERROR)
         }
     }
 }

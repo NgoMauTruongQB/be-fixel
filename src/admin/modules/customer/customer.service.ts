@@ -402,5 +402,45 @@ export class CustomerService {
 
         return !!existingUser
     }
+
+    async deactivateCustomer(id: number, actionUser: ActionUserDto): Promise<boolean> {
+        try {
+            const data = await this.prisma.customer.update({
+                where: { id },
+                data: {
+                    update_by: actionUser.user_id,
+                    update_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
+                    status: 3
+                }
+            })
+
+            if(!data) {
+                return false
+            }
+            return true
+        } catch (error) {
+            throw error
+        }
+    }
+
+    async activateCustomer(id: number, actionUser: ActionUserDto): Promise<boolean> {
+        try {
+            const data = await this.prisma.customer.update({
+                where: { id },
+                data: {
+                    update_by: actionUser.user_id,
+                    update_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
+                    status: 2
+                }
+            })
+
+            if(!data) {
+                return false
+            }
+            return true
+        } catch (error) {
+            throw error
+        }
+    }
       
 }

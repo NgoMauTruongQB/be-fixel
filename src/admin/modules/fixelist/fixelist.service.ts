@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import { GeneralInformationDto, PaginationDto, PaginationFixelistDto, ReviewDto } from 'src/admin/dto/fixelist.dto'
+import { ActionUserDto, GeneralInformationDto, PaginationDto, PaginationFixelistDto, ReviewDto } from 'src/admin/dto/fixelist.dto'
 import { job } from '@prisma/client'
 import { SlowBuffer } from 'buffer'
 import { convertToTimeZone } from 'src/shared/timezone.utility'
@@ -334,5 +334,87 @@ export class FixelistService {
         })
 
         return !!existingUser
+    }
+
+    async softDelete(id: number, actionUser: ActionUserDto): Promise<boolean> {
+        try {
+            const data = await this.prisma.handyman.update({
+                where: { id },
+                data: {
+                    delete_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
+                    delete_by: actionUser.user_id
+                }
+            })
+
+            if(!data) {
+                return false
+            }
+
+            return true
+        } catch (error) {
+            throw error
+        }
+    }
+
+    async restoreHandyman(id: number, actionUser: ActionUserDto): Promise<boolean> {
+        try {
+            const data = await this.prisma.handyman.update({
+                where: { id },
+                data: {
+                    delete_time: null,
+                    delete_by: null,
+                    update_by: actionUser.user_id,
+                    update_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET)
+                },
+            })
+
+            if(!data) {
+                return false
+            }
+
+            return true
+        } catch (error) {
+            throw error
+        }
+    }
+
+    async deactivateHanyman(id: number, actionUser: ActionUserDto): Promise<boolean> {
+        try {
+            const data = await this.prisma.handyman.update({
+                where: { id },
+                data: {
+                    update_by: actionUser.user_id,
+                    update_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
+                    status: 4
+                }
+            })
+
+            if(!data) {
+                return false
+            }
+            return true
+        } catch (error) {
+            throw error
+        }
+    }
+
+    async activateHanyman(id: number, actionUser: ActionUserDto): Promise<boolean> {
+        try {
+            const data = await this.prisma.handyman.update({
+                where: { id },
+                data: {
+                    update_by: actionUser.user_id,
+                    update_time: convertToTimeZone(new Date, process.env.TIMEZONE_OFFSET),
+                    status: 3
+                }
+            })
+
+            if(!data) {
+                return false
+            }
+            return true
+        } catch (error) {
+            throw error
+        }
     }
 }

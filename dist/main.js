@@ -196,7 +196,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core_1 = __webpack_require__(4);
 const app_module_1 = __webpack_require__(5);
 const common_1 = __webpack_require__(6);
-const bodyParser = __webpack_require__(27);
+const bodyParser = __webpack_require__(35);
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule, { cors: true });
     app.use(bodyParser.urlencoded({ extended: true }));
@@ -237,6 +237,7 @@ const common_1 = __webpack_require__(6);
 const job_module_1 = __webpack_require__(7);
 const customer_module_1 = __webpack_require__(19);
 const fixelist_module_1 = __webpack_require__(23);
+const csv_module_1 = __webpack_require__(27);
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -245,7 +246,8 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             job_module_1.JobModule,
             customer_module_1.CustomerModule,
-            fixelist_module_1.FixelistModule
+            fixelist_module_1.FixelistModule,
+            csv_module_1.CSVModule
         ],
     })
 ], AppModule);
@@ -1745,7 +1747,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CustomerController = void 0;
 const common_1 = __webpack_require__(6);
@@ -1847,6 +1849,24 @@ let CustomerController = class CustomerController {
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, error.message);
         }
     }
+    async deactivateCustomer(id, actionUser) {
+        try {
+            const isDelete = await this.customerService.deactivateCustomer(id, actionUser);
+            return new globalClass_1.ResponseData(isDelete, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async activateCustomer(id, actionUser) {
+        try {
+            const isDelete = await this.customerService.activateCustomer(id, actionUser);
+            return new globalClass_1.ResponseData(isDelete, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
 };
 exports.CustomerController = CustomerController;
 __decorate([
@@ -1926,6 +1946,22 @@ __decorate([
     __metadata("design:paramtypes", [Number, typeof (_r = typeof customer_dto_1.GeneralInformationDto !== "undefined" && customer_dto_1.GeneralInformationDto) === "function" ? _r : Object]),
     __metadata("design:returntype", typeof (_s = typeof Promise !== "undefined" && Promise) === "function" ? _s : Object)
 ], CustomerController.prototype, "updateGeneralInformation", null);
+__decorate([
+    (0, common_1.Put)('deactivate/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_t = typeof customer_dto_1.ActionUserDto !== "undefined" && customer_dto_1.ActionUserDto) === "function" ? _t : Object]),
+    __metadata("design:returntype", typeof (_u = typeof Promise !== "undefined" && Promise) === "function" ? _u : Object)
+], CustomerController.prototype, "deactivateCustomer", null);
+__decorate([
+    (0, common_1.Put)('activate/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_v = typeof customer_dto_1.ActionUserDto !== "undefined" && customer_dto_1.ActionUserDto) === "function" ? _v : Object]),
+    __metadata("design:returntype", typeof (_w = typeof Promise !== "undefined" && Promise) === "function" ? _w : Object)
+], CustomerController.prototype, "activateCustomer", null);
 exports.CustomerController = CustomerController = __decorate([
     (0, common_1.Controller)('/api/customer'),
     __metadata("design:paramtypes", [typeof (_a = typeof customer_service_1.CustomerService !== "undefined" && customer_service_1.CustomerService) === "function" ? _a : Object])
@@ -2023,6 +2059,7 @@ let CustomerService = class CustomerService {
                     name: true,
                     mobile_number: true,
                     activate_time: true,
+                    review: true
                 }
             });
             if (customer) {
@@ -2304,6 +2341,44 @@ let CustomerService = class CustomerService {
             },
         });
         return !!existingUser;
+    }
+    async deactivateCustomer(id, actionUser) {
+        try {
+            const data = await this.prisma.customer.update({
+                where: { id },
+                data: {
+                    update_by: actionUser.user_id,
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
+                    status: 3
+                }
+            });
+            if (!data) {
+                return false;
+            }
+            return true;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async activateCustomer(id, actionUser) {
+        try {
+            const data = await this.prisma.customer.update({
+                where: { id },
+                data: {
+                    update_by: actionUser.user_id,
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
+                    status: 2
+                }
+            });
+            if (!data) {
+                return false;
+            }
+            return true;
+        }
+        catch (error) {
+            throw error;
+        }
     }
 };
 exports.CustomerService = CustomerService;
@@ -2605,7 +2680,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FixelistController = void 0;
 const common_1 = __webpack_require__(6);
@@ -2680,6 +2755,42 @@ let FixelistController = class FixelistController {
             return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, error.message);
         }
     }
+    async softDeleteHandyman(id, actionUser) {
+        try {
+            const isDelete = await this.fixelistService.softDelete(id, actionUser);
+            return new globalClass_1.ResponseData(isDelete, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async restoreHandyman(id, actionUser) {
+        try {
+            const isRestore = await this.fixelistService.restoreHandyman(id, actionUser);
+            return new globalClass_1.ResponseData(isRestore, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async deactivateHanyman(id, actionUser) {
+        try {
+            const isDelete = await this.fixelistService.deactivateHanyman(id, actionUser);
+            return new globalClass_1.ResponseData(isDelete, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
+    async activateHanyman(id, actionUser) {
+        try {
+            const isDelete = await this.fixelistService.activateHanyman(id, actionUser);
+            return new globalClass_1.ResponseData(isDelete, globalEnum_1.HttpStatus.SUCCESS, globalEnum_1.HttpMessage.SUCCESS);
+        }
+        catch (error) {
+            return new globalClass_1.ResponseData(null, globalEnum_1.HttpStatus.ERROR, globalEnum_1.HttpMessage.ERROR);
+        }
+    }
 };
 exports.FixelistController = FixelistController;
 __decorate([
@@ -2736,6 +2847,38 @@ __decorate([
     __metadata("design:paramtypes", [Number, typeof (_l = typeof fixelist_dto_1.GeneralInformationDto !== "undefined" && fixelist_dto_1.GeneralInformationDto) === "function" ? _l : Object]),
     __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
 ], FixelistController.prototype, "updateGeneralInformation", null);
+__decorate([
+    (0, common_1.Put)('soft-delete/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_o = typeof fixelist_dto_1.ActionUserDto !== "undefined" && fixelist_dto_1.ActionUserDto) === "function" ? _o : Object]),
+    __metadata("design:returntype", typeof (_p = typeof Promise !== "undefined" && Promise) === "function" ? _p : Object)
+], FixelistController.prototype, "softDeleteHandyman", null);
+__decorate([
+    (0, common_1.Put)('restore/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_q = typeof fixelist_dto_1.ActionUserDto !== "undefined" && fixelist_dto_1.ActionUserDto) === "function" ? _q : Object]),
+    __metadata("design:returntype", typeof (_r = typeof Promise !== "undefined" && Promise) === "function" ? _r : Object)
+], FixelistController.prototype, "restoreHandyman", null);
+__decorate([
+    (0, common_1.Put)('deactivate/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_s = typeof fixelist_dto_1.ActionUserDto !== "undefined" && fixelist_dto_1.ActionUserDto) === "function" ? _s : Object]),
+    __metadata("design:returntype", typeof (_t = typeof Promise !== "undefined" && Promise) === "function" ? _t : Object)
+], FixelistController.prototype, "deactivateHanyman", null);
+__decorate([
+    (0, common_1.Put)('activate/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, typeof (_u = typeof fixelist_dto_1.ActionUserDto !== "undefined" && fixelist_dto_1.ActionUserDto) === "function" ? _u : Object]),
+    __metadata("design:returntype", typeof (_v = typeof Promise !== "undefined" && Promise) === "function" ? _v : Object)
+], FixelistController.prototype, "activateHanyman", null);
 exports.FixelistController = FixelistController = __decorate([
     (0, common_1.Controller)('/api/fixelist'),
     __metadata("design:paramtypes", [typeof (_a = typeof fixelist_service_1.FixelistService !== "undefined" && fixelist_service_1.FixelistService) === "function" ? _a : Object])
@@ -3056,6 +3199,82 @@ let FixelistService = class FixelistService {
         });
         return !!existingUser;
     }
+    async softDelete(id, actionUser) {
+        try {
+            const data = await this.prisma.handyman.update({
+                where: { id },
+                data: {
+                    delete_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
+                    delete_by: actionUser.user_id
+                }
+            });
+            if (!data) {
+                return false;
+            }
+            return true;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async restoreHandyman(id, actionUser) {
+        try {
+            const data = await this.prisma.handyman.update({
+                where: { id },
+                data: {
+                    delete_time: null,
+                    delete_by: null,
+                    update_by: actionUser.user_id,
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET)
+                },
+            });
+            if (!data) {
+                return false;
+            }
+            return true;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async deactivateHanyman(id, actionUser) {
+        try {
+            const data = await this.prisma.handyman.update({
+                where: { id },
+                data: {
+                    update_by: actionUser.user_id,
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
+                    status: 4
+                }
+            });
+            if (!data) {
+                return false;
+            }
+            return true;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async activateHanyman(id, actionUser) {
+        try {
+            const data = await this.prisma.handyman.update({
+                where: { id },
+                data: {
+                    update_by: actionUser.user_id,
+                    update_time: (0, timezone_utility_1.convertToTimeZone)(new Date, process.env.TIMEZONE_OFFSET),
+                    status: 3
+                }
+            });
+            if (!data) {
+                return false;
+            }
+            return true;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
 };
 exports.FixelistService = FixelistService;
 exports.FixelistService = FixelistService = __decorate([
@@ -3081,7 +3300,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.GeneralInformationDto = exports.ReviewDto = exports.PaginationDto = exports.PaginationFixelistDto = void 0;
+exports.ActionUserDto = exports.GeneralInformationDto = exports.ReviewDto = exports.PaginationDto = exports.PaginationFixelistDto = void 0;
 const class_transformer_1 = __webpack_require__(18);
 const class_validator_1 = __webpack_require__(17);
 class PaginationFixelistDto {
@@ -3193,10 +3412,294 @@ __decorate([
     (0, class_validator_1.IsArray)(),
     __metadata("design:type", typeof (_c = typeof Array !== "undefined" && Array) === "function" ? _c : Object)
 ], GeneralInformationDto.prototype, "services", void 0);
+class ActionUserDto {
+}
+exports.ActionUserDto = ActionUserDto;
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Number)
+], ActionUserDto.prototype, "user_id", void 0);
 
 
 /***/ }),
 /* 27 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CSVModule = void 0;
+const common_1 = __webpack_require__(6);
+const csv_controller_1 = __webpack_require__(28);
+const csv_service_1 = __webpack_require__(29);
+const prisma_service_1 = __webpack_require__(10);
+let CSVModule = class CSVModule {
+};
+exports.CSVModule = CSVModule;
+exports.CSVModule = CSVModule = __decorate([
+    (0, common_1.Module)({
+        controllers: [
+            csv_controller_1.CSVController
+        ],
+        providers: [
+            csv_service_1.CSVService,
+            prisma_service_1.PrismaService
+        ]
+    })
+], CSVModule);
+
+
+/***/ }),
+/* 28 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CSVController = void 0;
+const common_1 = __webpack_require__(6);
+const csv_service_1 = __webpack_require__(29);
+const express_1 = __webpack_require__(34);
+const fs = __webpack_require__(30);
+const path = __webpack_require__(32);
+let CSVController = class CSVController {
+    constructor(csvService) {
+        this.csvService = csvService;
+    }
+    async exportCustomerToCsv(res) {
+        const excelDirectory = 'excel/customer';
+        if (!fs.existsSync(excelDirectory)) {
+            fs.mkdirSync(excelDirectory, { recursive: true });
+        }
+        const filename = path.join(excelDirectory, `EXPORT_CUSTOMER.csv`);
+        await this.csvService.writeCustomserCsvFile(filename);
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+        const fileStream = fs.createReadStream(filename);
+        return new Promise((resolve, reject) => {
+            fileStream.pipe(res);
+            fileStream.on('end', () => {
+                resolve();
+            });
+            fileStream.on('error', (error) => {
+                console.log(error);
+                reject(error);
+            });
+        });
+    }
+};
+exports.CSVController = CSVController;
+__decorate([
+    (0, common_1.Get)('export'),
+    __param(0, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_b = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _b : Object]),
+    __metadata("design:returntype", Promise)
+], CSVController.prototype, "exportCustomerToCsv", null);
+exports.CSVController = CSVController = __decorate([
+    (0, common_1.Controller)('/api/csv'),
+    __metadata("design:paramtypes", [typeof (_a = typeof csv_service_1.CSVService !== "undefined" && csv_service_1.CSVService) === "function" ? _a : Object])
+], CSVController);
+
+
+/***/ }),
+/* 29 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CSVService = void 0;
+const common_1 = __webpack_require__(6);
+const prisma_service_1 = __webpack_require__(10);
+const fs = __webpack_require__(30);
+const fastcsv = __webpack_require__(31);
+const path_1 = __webpack_require__(32);
+const date_fns_1 = __webpack_require__(33);
+let CSVService = class CSVService {
+    constructor(prisma) {
+        this.prisma = prisma;
+    }
+    async writeCustomserCsvFile(filename) {
+        try {
+            const filterConditions = {
+                delete_time: null
+            };
+            const customers = await this.prisma.customer.findMany({
+                where: filterConditions,
+                select: {
+                    id: true,
+                    user_name: true,
+                    name: true,
+                    email: true,
+                    mobile_number: true,
+                    address: {
+                        where: {
+                            default: true
+                        },
+                        select: {
+                            floor: true,
+                            unit_no: true,
+                            building: true,
+                            home: true,
+                            street: true,
+                            country: true,
+                            post_code: true,
+                        }
+                    },
+                    status: true,
+                    activate_time: true,
+                    review: true,
+                    job: {
+                        select: {
+                            status: true
+                        }
+                    },
+                },
+            });
+            const csvStream = fs.createWriteStream(filename);
+            const csvWriter = fastcsv.format();
+            csvWriter.pipe(csvStream);
+            csvWriter.write({
+                id: 'ID',
+                user_name: 'User Name',
+                name: 'Name',
+                email: 'Email',
+                mobile_number: 'Contact',
+                address: 'Address',
+                total_address: 'Total Address',
+                status: 'Status',
+                activate_time: 'Activate Time',
+                review: 'Review(s)',
+                jobs_posted: 'Jobs Posted',
+                jobs_completed: 'Jobs Completed',
+                jobs_cancelled: 'Jobs Cancelled'
+            });
+            customers.forEach((customer) => {
+                const formattedActivateTime = (0, date_fns_1.format)(new Date(customer.activate_time), 'yyyy-MM-dd HH:mm:ss');
+                const addressData = customer.address[0] || {};
+                const floor = addressData.floor || '';
+                const unit_no = addressData.unit_no || '';
+                const building = addressData.building || '';
+                const home = addressData.home || '';
+                const street = addressData.street || '';
+                const country = addressData.country || '';
+                const post_code = addressData.post_code || '';
+                const address = [floor, unit_no, building, home, street, country, post_code].filter(Boolean).join(', ');
+                const total_address = customer.address.length;
+                const status = (customer.status == 2) ? 'ACTIVATED' : ((customer.status == 1) ? 'NEW' : '');
+                const review = customer.review.length;
+                const jobs_posted = customer.job.length;
+                var jobs_completed = 0;
+                var jobs_cancelled = 0;
+                customer.job.forEach(job => {
+                    if (job.status === 4) {
+                        jobs_completed++;
+                    }
+                    if (job.status === 5) {
+                        jobs_cancelled++;
+                    }
+                });
+                csvWriter.write({
+                    id: customer.id,
+                    user_name: customer.user_name,
+                    name: customer.name,
+                    email: customer.email,
+                    mobile_number: customer.mobile_number,
+                    address: address,
+                    total_address: total_address,
+                    status: status,
+                    activate_time: formattedActivateTime,
+                    review: review,
+                    jobs_posted: jobs_posted,
+                    jobs_completed: jobs_completed,
+                    jobs_cancelled: jobs_cancelled
+                });
+            });
+            csvStream.on('finish', () => {
+                (0, path_1.resolve)();
+            });
+            csvWriter.end();
+        }
+        catch (error) {
+            console.error('Error in writeCsvFile: ', error);
+            throw error;
+        }
+    }
+};
+exports.CSVService = CSVService;
+exports.CSVService = CSVService = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof prisma_service_1.PrismaService !== "undefined" && prisma_service_1.PrismaService) === "function" ? _a : Object])
+], CSVService);
+
+
+/***/ }),
+/* 30 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs");
+
+/***/ }),
+/* 31 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fast-csv");
+
+/***/ }),
+/* 32 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");
+
+/***/ }),
+/* 33 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("date-fns");
+
+/***/ }),
+/* 34 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("express");
+
+/***/ }),
+/* 35 */
 /***/ ((module) => {
 
 "use strict";
@@ -3264,7 +3767,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("898d526fe4f378ecfd60")
+/******/ 		__webpack_require__.h = () => ("e0713906e0ccd489295c")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
