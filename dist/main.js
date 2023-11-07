@@ -196,7 +196,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core_1 = __webpack_require__(4);
 const app_module_1 = __webpack_require__(5);
 const common_1 = __webpack_require__(6);
-const bodyParser = __webpack_require__(35);
+const bodyParser = __webpack_require__(32);
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule, { cors: true });
     app.use(bodyParser.urlencoded({ extended: true }));
@@ -3473,12 +3473,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
+var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CSVController = void 0;
 const common_1 = __webpack_require__(6);
 const csv_service_1 = __webpack_require__(29);
-const express_1 = __webpack_require__(34);
+const express_1 = __webpack_require__(31);
 let CSVController = class CSVController {
     constructor(csvService) {
         this.csvService = csvService;
@@ -3486,10 +3486,32 @@ let CSVController = class CSVController {
     async exportCustomerToCsv(res) {
         const customers = await this.csvService.getCustomersData();
         res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', 'attachment; filename=EXPORT_CUSTOMER.csv');
+        res.setHeader('Content-Disposition', 'attachment filename=EXPORT_CUSTOMER.csv');
         res.flushHeaders();
         const header = 'ID,User Name,Name,Email,Contact,Address,Total Address,Status,Activate Time,Review(s),Jobs Posted,Jobs Completed,Jobs Cancelled\n';
         const csvData = customers.map((customer) => Object.values(customer).join(',')).join('\n');
+        const csvContent = header + csvData;
+        res.write(csvContent, 'utf-8');
+        res.end();
+    }
+    async exportFixelistToCsv(res) {
+        const handymans = await this.csvService.getFixelistData();
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment filename=EXPORT_FIXELIST.csv');
+        res.flushHeaders();
+        const header = 'Company Name,Username,Email,Contact,Default Address,Role,Status,Activated Date & Time,Review(s),Jobs Posted,Jobs Completed,Jobs Cancelled\n';
+        const csvData = handymans.map((fixelist) => Object.values(fixelist).join(',')).join('\n');
+        const csvContent = header + csvData;
+        res.write(csvContent, 'utf-8');
+        res.end();
+    }
+    async exportJobToCsv(res) {
+        const jobs = await this.csvService.getJobsData();
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment filename=EXPORT_JOB.csv');
+        res.flushHeaders();
+        const header = 'Job ID,Customer,Customer Email,Customer Contact,Job Address,Posted Date & Time,Scheduled Date & Time, Job Status,Fixelist,Worker,Review(s)\n';
+        const csvData = jobs.map((job) => Object.values(job).join(',')).join('\n');
         const csvContent = header + csvData;
         res.write(csvContent, 'utf-8');
         res.end();
@@ -3503,6 +3525,20 @@ __decorate([
     __metadata("design:paramtypes", [typeof (_b = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _b : Object]),
     __metadata("design:returntype", Promise)
 ], CSVController.prototype, "exportCustomerToCsv", null);
+__decorate([
+    (0, common_1.Get)('export_fixelist'),
+    __param(0, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_c = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _c : Object]),
+    __metadata("design:returntype", Promise)
+], CSVController.prototype, "exportFixelistToCsv", null);
+__decorate([
+    (0, common_1.Get)('export_jobs'),
+    __param(0, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_d = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _d : Object]),
+    __metadata("design:returntype", Promise)
+], CSVController.prototype, "exportJobToCsv", null);
 exports.CSVController = CSVController = __decorate([
     (0, common_1.Controller)('/api/csv'),
     __metadata("design:paramtypes", [typeof (_a = typeof csv_service_1.CSVService !== "undefined" && csv_service_1.CSVService) === "function" ? _a : Object])
@@ -3529,7 +3565,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CSVService = void 0;
 const common_1 = __webpack_require__(6);
 const prisma_service_1 = __webpack_require__(10);
-const date_fns_1 = __webpack_require__(33);
+const date_fns_1 = __webpack_require__(30);
 let CSVService = class CSVService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -3613,6 +3649,137 @@ let CSVService = class CSVService {
         });
         return data;
     }
+    async getFixelistData() {
+        const filterConditions = {
+            delete_time: null
+        };
+        const handymans = await this.prisma.handyman.findMany({
+            where: filterConditions,
+            select: {
+                name: true,
+                user_name: true,
+                email: true,
+                mobile_number: true,
+                address: true,
+                role: true,
+                status: true,
+                activate_time: true,
+                review: true,
+                job_job_handyman_idTohandyman: {
+                    select: {
+                        status: true
+                    }
+                },
+            },
+        });
+        const data = handymans.map((handyman) => {
+            const formattedActivateTime = (0, date_fns_1.format)(new Date(handyman.activate_time), 'yyyy-MM-dd HH:mm:ss');
+            const status = (handyman.status == 3) ? 'DEACTIVATED' : ((handyman.status == 2) ? 'APPROVED' : '');
+            const review = handyman.review.length;
+            const jobs_posted = handyman.job_job_handyman_idTohandyman.length;
+            const address = (handyman.address) ? `"${handyman.address}"` : '';
+            let jobs_completed = 0;
+            let jobs_cancelled = 0;
+            handyman.job_job_handyman_idTohandyman.forEach((job) => {
+                if (job.status === 4) {
+                    jobs_completed++;
+                }
+                if (job.status === 5) {
+                    jobs_cancelled++;
+                }
+            });
+            return {
+                name: handyman.name,
+                user_name: handyman.user_name,
+                email: handyman.email,
+                mobile_number: handyman.mobile_number,
+                address: address,
+                role: handyman.role,
+                status,
+                activate_time: formattedActivateTime,
+                review,
+                jobs_posted,
+                jobs_completed,
+                jobs_cancelled,
+            };
+        });
+        return data;
+    }
+    async getJobsData() {
+        const filterConditions = {
+            delete_time: null
+        };
+        const jobs = await this.prisma.job.findMany({
+            where: filterConditions,
+            select: {
+                code: true,
+                customer: {
+                    select: {
+                        user_name: true,
+                        email: true,
+                        mobile_number: true,
+                    }
+                },
+                address: {
+                    select: {
+                        floor: true,
+                        unit_no: true,
+                        building: true,
+                        home: true,
+                        street: true,
+                        country: true,
+                        post_code: true,
+                    }
+                },
+                insert_time: true,
+                schedule_time: true,
+                status: true,
+                handyman_job_handyman_idTohandyman: {
+                    select: {
+                        name: true
+                    }
+                },
+                handyman_job_worker_idTohandyman: {
+                    select: {
+                        name: true
+                    }
+                },
+                review: true
+            },
+        });
+        const data = jobs.map((job) => {
+            const formattedInsertTime = (0, date_fns_1.format)(new Date(job.insert_time), 'yyyy-MM-dd HH:mm:ss');
+            const formattedScheduleTime = (0, date_fns_1.format)(new Date(job.schedule_time), 'yyyy-MM-dd HH:mm:ss');
+            const status = (job.status == 5) ? 'CANCELED' : (job.status == 4) ? 'COMPLETED' : (job.status == 2) ? 'DISCUSSION' : '';
+            const addressData = job.address || {};
+            const floor = addressData.floor || '';
+            const unit_no = addressData.unit_no || '';
+            const building = addressData.building || '';
+            const home = addressData.home || '';
+            const street = addressData.street || '';
+            const country = addressData.country || '';
+            const post_code = addressData.post_code || '';
+            const address = `"${[floor, unit_no, building, home, street, country, post_code].filter(Boolean).join(', ')}"`;
+            const fixelist = job.handyman_job_handyman_idTohandyman?.name || '';
+            const worker = job.handyman_job_worker_idTohandyman?.name || '';
+            const review = job.review?.length || 0;
+            return {
+                code: job.code,
+                customer: job.customer.user_name,
+                email: job.customer.email,
+                mobile: job.customer.mobile_number,
+                address,
+                posted_date: formattedInsertTime,
+                schedule_date: formattedScheduleTime,
+                status,
+                fixelist,
+                worker,
+                review,
+            };
+        });
+        console.log(jobs);
+        return data;
+    }
 };
 exports.CSVService = CSVService;
 exports.CSVService = CSVService = __decorate([
@@ -3622,24 +3789,21 @@ exports.CSVService = CSVService = __decorate([
 
 
 /***/ }),
-/* 30 */,
-/* 31 */,
-/* 32 */,
-/* 33 */
+/* 30 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("date-fns");
 
 /***/ }),
-/* 34 */
+/* 31 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("express");
 
 /***/ }),
-/* 35 */
+/* 32 */
 /***/ ((module) => {
 
 "use strict";
@@ -3707,7 +3871,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("a0e100fcf952c89d682c")
+/******/ 		__webpack_require__.h = () => ("5c62dfcd42f748a823f9")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
