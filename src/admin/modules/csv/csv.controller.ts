@@ -1,40 +1,27 @@
-import { Controller, Get, Res } from '@nestjs/common'
-import { CSVService } from './csv.service'
-import { Response } from 'express'
-import * as fs from 'fs'
-import { getCurrentDateTimeString } from 'src/shared/getCurrentDateTimeString'
-import * as path from 'path'
+// CSVController.ts
+import { Controller, Get, Res } from '@nestjs/common';
+import { CSVService } from './csv.service';
+import { Response } from 'express';
 
 @Controller('/api/csv')
 export class CSVController {
     constructor(private csvService: CSVService) {}
 
-    @Get('export')
+    @Get('export_customer')
     async exportCustomerToCsv(@Res() res: Response) {
-        const excelDirectory = 'excel/customer'
+        const customers = await this.csvService.getCustomersData();
 
-        if (!fs.existsSync(excelDirectory)) {
-            fs.mkdirSync(excelDirectory, { recursive: true })
-        }
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=EXPORT_CUSTOMER.csv');
 
-        const filename = path.join(excelDirectory, `EXPORT_CUSTOMER.csv`)
+        res.flushHeaders();
 
-        await this.csvService.writeCustomserCsvFile(filename)
+        // Chuyển dữ liệu thành chuỗi CSV và ghi trực tiếp vào luồng HTTP
+        const header = 'ID,User Name,Name,Email,Contact,Address,Total Address,Status,Activate Time,Review(s),Jobs Posted,Jobs Completed,Jobs Cancelled\n'
+        const csvData = customers.map((customer) => Object.values(customer).join(',')).join('\n');
+        const csvContent = header + csvData;
 
-        res.setHeader('Content-Type', 'text/csv')
-        res.setHeader('Content-Disposition', `attachment; filename=${filename}`)
-
-        const fileStream = fs.createReadStream(filename)
-
-        return new Promise<void>((resolve, reject) => {
-            fileStream.pipe(res);
-            fileStream.on('end', () => {
-                resolve()
-            })
-            fileStream.on('error', (error) => {
-                console.log(error)
-                reject(error)
-            })
-        })
+        res.write(csvContent, 'utf-8');
+        res.end();
     }
 }

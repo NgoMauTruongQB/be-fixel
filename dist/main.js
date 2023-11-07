@@ -3479,37 +3479,25 @@ exports.CSVController = void 0;
 const common_1 = __webpack_require__(6);
 const csv_service_1 = __webpack_require__(29);
 const express_1 = __webpack_require__(34);
-const fs = __webpack_require__(30);
-const path = __webpack_require__(32);
 let CSVController = class CSVController {
     constructor(csvService) {
         this.csvService = csvService;
     }
     async exportCustomerToCsv(res) {
-        const excelDirectory = 'excel/customer';
-        if (!fs.existsSync(excelDirectory)) {
-            fs.mkdirSync(excelDirectory, { recursive: true });
-        }
-        const filename = path.join(excelDirectory, `EXPORT_CUSTOMER.csv`);
-        await this.csvService.writeCustomserCsvFile(filename);
+        const customers = await this.csvService.getCustomersData();
         res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-        const fileStream = fs.createReadStream(filename);
-        return new Promise((resolve, reject) => {
-            fileStream.pipe(res);
-            fileStream.on('end', () => {
-                resolve();
-            });
-            fileStream.on('error', (error) => {
-                console.log(error);
-                reject(error);
-            });
-        });
+        res.setHeader('Content-Disposition', 'attachment; filename=EXPORT_CUSTOMER.csv');
+        res.flushHeaders();
+        const header = 'ID,User Name,Name,Email,Contact,Address,Total Address,Status,Activate Time,Review(s),Jobs Posted,Jobs Completed,Jobs Cancelled\n';
+        const csvData = customers.map((customer) => Object.values(customer).join(',')).join('\n');
+        const csvContent = header + csvData;
+        res.write(csvContent, 'utf-8');
+        res.end();
     }
 };
 exports.CSVController = CSVController;
 __decorate([
-    (0, common_1.Get)('export'),
+    (0, common_1.Get)('export_customer'),
     __param(0, (0, common_1.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [typeof (_b = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _b : Object]),
@@ -3541,119 +3529,89 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CSVService = void 0;
 const common_1 = __webpack_require__(6);
 const prisma_service_1 = __webpack_require__(10);
-const fs = __webpack_require__(30);
-const fastcsv = __webpack_require__(31);
-const path_1 = __webpack_require__(32);
 const date_fns_1 = __webpack_require__(33);
 let CSVService = class CSVService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async writeCustomserCsvFile(filename) {
-        try {
-            const filterConditions = {
-                delete_time: null
-            };
-            const customers = await this.prisma.customer.findMany({
-                where: filterConditions,
-                select: {
-                    id: true,
-                    user_name: true,
-                    name: true,
-                    email: true,
-                    mobile_number: true,
-                    address: {
-                        where: {
-                            default: true
-                        },
-                        select: {
-                            floor: true,
-                            unit_no: true,
-                            building: true,
-                            home: true,
-                            street: true,
-                            country: true,
-                            post_code: true,
-                        }
+    async getCustomersData() {
+        const filterConditions = {
+            delete_time: null
+        };
+        const customers = await this.prisma.customer.findMany({
+            where: filterConditions,
+            select: {
+                id: true,
+                user_name: true,
+                name: true,
+                email: true,
+                mobile_number: true,
+                address: {
+                    where: {
+                        default: true
                     },
-                    status: true,
-                    activate_time: true,
-                    review: true,
-                    job: {
-                        select: {
-                            status: true
-                        }
-                    },
+                    select: {
+                        floor: true,
+                        unit_no: true,
+                        building: true,
+                        home: true,
+                        street: true,
+                        country: true,
+                        post_code: true,
+                    }
                 },
-            });
-            const csvStream = fs.createWriteStream(filename);
-            const csvWriter = fastcsv.format();
-            csvWriter.pipe(csvStream);
-            csvWriter.write({
-                id: 'ID',
-                user_name: 'User Name',
-                name: 'Name',
-                email: 'Email',
-                mobile_number: 'Contact',
-                address: 'Address',
-                total_address: 'Total Address',
-                status: 'Status',
-                activate_time: 'Activate Time',
-                review: 'Review(s)',
-                jobs_posted: 'Jobs Posted',
-                jobs_completed: 'Jobs Completed',
-                jobs_cancelled: 'Jobs Cancelled'
-            });
-            customers.forEach((customer) => {
-                const formattedActivateTime = (0, date_fns_1.format)(new Date(customer.activate_time), 'yyyy-MM-dd HH:mm:ss');
-                const addressData = customer.address[0] || {};
-                const floor = addressData.floor || '';
-                const unit_no = addressData.unit_no || '';
-                const building = addressData.building || '';
-                const home = addressData.home || '';
-                const street = addressData.street || '';
-                const country = addressData.country || '';
-                const post_code = addressData.post_code || '';
-                const address = [floor, unit_no, building, home, street, country, post_code].filter(Boolean).join(', ');
-                const total_address = customer.address.length;
-                const status = (customer.status == 2) ? 'ACTIVATED' : ((customer.status == 1) ? 'NEW' : '');
-                const review = customer.review.length;
-                const jobs_posted = customer.job.length;
-                var jobs_completed = 0;
-                var jobs_cancelled = 0;
-                customer.job.forEach(job => {
-                    if (job.status === 4) {
-                        jobs_completed++;
+                status: true,
+                activate_time: true,
+                review: true,
+                job: {
+                    select: {
+                        status: true
                     }
-                    if (job.status === 5) {
-                        jobs_cancelled++;
-                    }
-                });
-                csvWriter.write({
-                    id: customer.id,
-                    user_name: customer.user_name,
-                    name: customer.name,
-                    email: customer.email,
-                    mobile_number: customer.mobile_number,
-                    address: address,
-                    total_address: total_address,
-                    status: status,
-                    activate_time: formattedActivateTime,
-                    review: review,
-                    jobs_posted: jobs_posted,
-                    jobs_completed: jobs_completed,
-                    jobs_cancelled: jobs_cancelled
-                });
+                },
+            },
+        });
+        const data = customers.map((customer) => {
+            const formattedActivateTime = (0, date_fns_1.format)(new Date(customer.activate_time), 'yyyy-MM-dd HH:mm:ss');
+            const addressData = customer.address[0] || {};
+            const floor = addressData.floor || '';
+            const unit_no = addressData.unit_no || '';
+            const building = addressData.building || '';
+            const home = addressData.home || '';
+            const street = addressData.street || '';
+            const country = addressData.country || '';
+            const post_code = addressData.post_code || '';
+            const address = `"${[floor, unit_no, building, home, street, country, post_code].filter(Boolean).join(', ')}"`;
+            const total_address = customer.address.length;
+            const status = (customer.status == 2) ? 'ACTIVATED' : ((customer.status == 1) ? 'NEW' : '');
+            const review = customer.review.length;
+            const jobs_posted = customer.job.length;
+            let jobs_completed = 0;
+            let jobs_cancelled = 0;
+            customer.job.forEach((job) => {
+                if (job.status === 4) {
+                    jobs_completed++;
+                }
+                if (job.status === 5) {
+                    jobs_cancelled++;
+                }
             });
-            csvStream.on('finish', () => {
-                (0, path_1.resolve)();
-            });
-            csvWriter.end();
-        }
-        catch (error) {
-            console.error('Error in writeCsvFile: ', error);
-            throw error;
-        }
+            return {
+                id: customer.id,
+                user_name: customer.user_name,
+                name: customer.name,
+                email: customer.email,
+                mobile_number: customer.mobile_number,
+                address,
+                total_address,
+                status,
+                activate_time: formattedActivateTime,
+                review,
+                jobs_posted,
+                jobs_completed,
+                jobs_cancelled,
+            };
+        });
+        return data;
     }
 };
 exports.CSVService = CSVService;
@@ -3664,27 +3622,9 @@ exports.CSVService = CSVService = __decorate([
 
 
 /***/ }),
-/* 30 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("fs");
-
-/***/ }),
-/* 31 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("fast-csv");
-
-/***/ }),
-/* 32 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("path");
-
-/***/ }),
+/* 30 */,
+/* 31 */,
+/* 32 */,
 /* 33 */
 /***/ ((module) => {
 
@@ -3767,7 +3707,7 @@ module.exports = require("body-parser");
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("e0713906e0ccd489295c")
+/******/ 		__webpack_require__.h = () => ("a0e100fcf952c89d682c")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
